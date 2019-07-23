@@ -1,7 +1,53 @@
-fit2sls <- function(y, X, Z, wt=NULL, singular.ok=FALSE, qr=TRUE, ...){
+
+#' 2SLS Regression
+#'
+#' @param y The response variable, a vector.
+#' @param X The explanatory-variable model matrix.
+#' @param Z The instrumental-variable model matrix,
+#' @param wt An optional weight vector.
+#' @param singular.ok Is perfect collinearity tolerable in either stage regression?
+#' @param qr Include the QR decomposition in the returned object.
+#'
+#' @return A list with the following components:
+#' \describe{
+#'   \item{\code{n}}{number of cases}
+#'   \item{\code{p}}{number of columns of \code{X}}
+#'   \item{\code{q}}{number of columns of \code{Z}}
+#'   \item{\code{qr}}{QR decomposition for stage-2 regression}
+#'   \item{\code{rank}}{rank of model matrix for stage-2 regression}
+#'   \item{\code{qr.1}}{QR decomposition for stage-1 regression}
+#'   \item{\code{rank.1}}{rank of \code{Z}}
+#'   \item{\code{coefficients}}{estimated regression coefficients}
+#'   \item{\code{coefficients.1}}{coefficient matrix from stage11 regression}
+#'   \item{\code{vcov}}{covariance matrix of estimated coefficients}
+#'   \item{\code{df.residual}}{residual degrees of freedom for stage-2 regression}
+#'   \item{\code{sigma}}{residual standard deviation}
+#'   \item{\code{residuals}}{response residuals}
+#'   \item{\code{fitted}}{model fitted values}
+#'   \item{\code{residuals.1}}{matrix of stage-1 residuals}
+#'   \item{\code{fitted.1}}{matrix of stage=1 fitted values}
+#'   \item{\code{residuals.2}}{stage-2 residuals}
+#'   \item{\code{fitted.2}}{stage-2 fitted values}
+#' }
+#'
+#' @export
+#'
+#' @description The work-horse 2SLS function, not normally meant to be called directly
+#' but rather via \code{\link{lm2sls}}.
+#'
+#' @author John Fox \email{jfox@mcmaster.ca}
+#'
+#' @seealso \code{\link{lm2sls}}
+#'
+#' @examples
+#' m <- with(Kmenta, fit2sls(Q, cbind(1, P, D), cbind(1, D, F, A)))
+#' names(m)
+#' m$coefficients # estimates
+#' sqrt(diag(m$vcov)) # standard errors
+fit2sls <- function(y, X, Z, wt=NULL, singular.ok=FALSE, qr=TRUE){
 
   # handle NAs
-  
+
   na.action <- which(rowSums(is.na(cbind(y, X, Z, wt))) > 0)
   if (length(na.action) > 0) {
     class(na.action) <- "exclude" # to be used for fits and residuals
@@ -12,25 +58,25 @@ fit2sls <- function(y, X, Z, wt=NULL, singular.ok=FALSE, qr=TRUE, ...){
     if (!is.null(wt)) wt <- wt[-na.action]
   }
   else na.action <- NULL
-  
+
   # stage 1 regression
-  
+
   stage1 <- suppressWarnings(lsfit(Z, X, wt=wt, intercept=FALSE))
   rk.1 <- stage1$qr$rank
   if (rk.1 < ncol(Z)){
-    msg <- paste0("rank of stage-1 model matrix = ", rk.1, 
+    msg <- paste0("rank of stage-1 model matrix = ", rk.1,
                   " < number of stage-1 coefficients = ", ncol(Z))
     if (singular.ok) warning(msg) else stop(msg)
   }
-  
+
   # stage 2 regression
-  
+
   X.fit <- X - stage1$residuals
   colnames(X.fit) <- colnames(X)
   stage2 <- suppressWarnings(lsfit(X.fit, y, wt=wt, intercept=FALSE))
   rk.2 <- stage2$qr$rank
   if (rk.2 < ncol(X.fit)){
-    msg <- paste0("rank of stage-2 model matrix = ", rk.2, 
+    msg <- paste0("rank of stage-2 model matrix = ", rk.2,
                   " < number of stage-2 coefficients = ", ncol(X.fit))
     if (singular.ok) warning(msg) else stop(msg)
   }
@@ -42,7 +88,7 @@ fit2sls <- function(y, X, Z, wt=NULL, singular.ok=FALSE, qr=TRUE, ...){
   sigma2 <- (if (is.null(wt)) sum(residuals^2) else sum(wt*residuals^2))/df.res
   vcov <- sigma2*chol2inv(stage2$qr$qr)
   rownames(vcov) <- colnames(vcov) <- names(stage2$coef)
-  
+
   list(
     n              = n,
     p              = p,
@@ -65,8 +111,72 @@ fit2sls <- function(y, X, Z, wt=NULL, singular.ok=FALSE, qr=TRUE, ...){
   )
 }
 
-lm2sls <- function (formula, instruments=rhs(formula), data, subset, weights, 
-                    na.action=getOption("na.action"), contrasts = NULL, 
+#' 2SLS Least Squares Estimation of a Linear Model
+#'
+#' @param formula A model \link[stats]{formula}, as for \code{\link[stats]{lm}},
+#' specifying the response variable and the right-hand side of the model.
+#' @param instruments A one-sided formula, specifying the instrumental variables.
+#' @param data An optional data frame, list, or environment containing the variables in
+#' the model formula and instrumental-variables formula.
+#' @param subset See \code{\link[stats]{lm}}.
+#' @param weights An optional vector of invariance-variance weights; if absent the weights
+#' are set to 1 for all cases.
+#' @param na.action See \code{\link[stats]{lm}}.
+#' @param contrasts See \code{\link[stats]{lm}}.
+#' @param singular.ok If \code{FALSE} (the default) perfect collinearity in either stage of
+#' the 2SLS regression produces an error.
+#' @param model Include the model frame in the returned object.
+#' @param x Include the model matrices for the two stages in the returned object.
+#' @param y Include the response vector in the returned object.
+#' @param qr Include the QR decompositions for the two stages in the returned object.
+#' @param ... Not used.
+#'
+#' @return An object of class \code{"2sls"}, with the following elements in addition to
+#' those returned by \code{\link{fit2sls}}:
+#' \describe{
+#'   \item{\code{response name}}{a character string with the name of the response
+#'   variable or possibly the character representation of an expression evaluating
+#'   to the response.}
+#'   \item{\code{formula}}{the model formula.}
+#'   \item{\code{intruments}}{the one-sided formula specifying the instrumental variables.}
+#'   \item{\code{model.matrix}}{the model matrix corresponding to the right-hand side of
+#'   the model formula.}
+#'   \item{\code{y}}{the response-variable vector.}
+#'   \item{\code{model.matrix.instruments}}{the model matrix for the first-stage regression.}
+#'   \item{\code{w}}{the vector of weights (for a weighted fit).}
+#'   \item{\code{wt.var}}{the name of the weight variable (for a weighted fit).}
+#'   \item{\code{na.action}}{the na.action argument.}
+#'   \item{\code{call}}{the function call.}
+#'   \item{\code{contasts}}{contrasts for the model matrix.}
+#'   \item{\code{contrasts.instruments}}{contrasts for the instrumental-variables
+#'   model matrix.}
+#'   \item{\code{xlevels}}{factor levels (if any) for the model matrix.}
+#'   \item{\code{xlevels.instruments}}{factor levels (if any) for the
+#'   instrumental variables model matrix.}
+#'   \item{\code{terms}}{the terms object for the model matrix.}
+#'   \item{\code{terms.instruments}}{the terms object for the instrumental
+#'   variables model matrix.}
+#'   \item{\code{model}}{the model frame.}
+#'   }
+#'
+#' @description   Provides a formula-based interface for 2SLS estimation of
+#' a linear model. Computations are done by \code{\link{fit2sls}}. The returned object has
+#' the necessary information for computing a variety of
+#' \link[=2SLS Diagnostics]{regression diagnostics}.
+#'
+#' @author John Fox \email{jfox@mcmaster.ca}
+#'
+#' @seealso \code{\link[stats]{lm}}, \code{\link[stats]{formula}}, \code{\link{2SLS Methods}},
+#' \code{\link{2SLS Diagnostics}}
+#'
+#' @export
+#'
+#' @examples
+#'summary(lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta))     # demand equation
+#'summary(lm2sls(Q ~ P + F + A, ~ D + F + A, data=Kmenta)) # supply equation
+#'
+lm2sls <- function (formula, instruments=rhs(formula), data, subset, weights,
+                    na.action=getOption("na.action"), contrasts = NULL,
                     singular.ok=FALSE, model=TRUE, x=TRUE, y=TRUE, qr=TRUE, ...){
   rhs <- function(formula) if (length(formula) == 3) formula[-2] else formula
   combineFormulas <- function(formula1, formula2){
@@ -117,6 +227,24 @@ lm2sls <- function (formula, instruments=rhs(formula), data, subset, weights,
   result
 }
 
+
+#' Methods for \code{"2sls"} Objects
+#'
+#' @param object An object of class \code{"2sls"}.
+#' @param type Type of object desired, varies by method:
+#' \describe{
+#'   \item{\code{model.matrix}}{\code{"model"} (the default), \code{"instruments"}, or
+#'     \code{"stage2"}.}
+#'   \item{\code{residuals}}{\code{"model"}, \code{"stage1"}, \code{"stage2"},
+#'     \code{"working"} (equivalent to \code{"model"}), \code{"deviance"},
+#'     \code{"pearson"} (equivalent to \code{"deviance"}), or \code{"partial"}.}
+#'   \item{\code{fitted}}{\code{"model"}, \code{"stage1"}, or \code{"stage2"}.}
+#'   \item{\code{}}{}
+#'   }
+#' @param ... to match generics, not generally used.
+#'
+#' @export
+#' @method model.matrix 2sls
 model.matrix.2sls <- function(object, type=c("model", "instruments", "stage2"), ...){
   type <- match.arg(type)
   switch(type,
@@ -125,14 +253,23 @@ model.matrix.2sls <- function(object, type=c("model", "instruments", "stage2"), 
          stage2 = object$fitted.1)
 }
 
+#' @rdname model.matrix.2sls
+#' @param model An object of class \code{"2sls"}.
+#' @export
 avPlot.2sls <- function(model, ...){
   model$model.matrix <- model.matrix(model, type="stage2")
   NextMethod()
 }
 
-vcov.2sls <- function(object, ...) object$vcov
+#' @rdname model.matrix.2sls
+#' @export
+vcov.2sls <- function(object, ...) {
+  object$vcov
+}
 
-residuals.2sls <- function(object, type=c("model", "stage1", "stage2", "working", 
+#' @rdname model.matrix.2sls
+#' @export
+residuals.2sls <- function(object, type=c("model", "stage1", "stage2", "working",
                                           "deviance", "pearson", "partial"), ...){
   type <- match.arg(type)
   w <- object$weights
@@ -148,6 +285,8 @@ residuals.2sls <- function(object, type=c("model", "stage1", "stage2", "working"
   naresid(object$na.action, res)
 }
 
+#' @rdname model.matrix.2sls
+#' @export
 fitted.2sls <- function(object, type=c("model", "stage1", "stage2"), ...){
   type <- match.arg(type)
   switch(type,
@@ -156,23 +295,31 @@ fitted.2sls <- function(object, type=c("model", "stage1", "stage2"), ...){
          stage2 = napredict(object$na.action, object$fitted.2))
 }
 
+#' @rdname model.matrix.2sls
+#' @param x An object of class \code{"2sls"}.
+#' @param digits Digits to print.
+#' @export
 print.2sls <- function (x, digits = getOption("digits") - 2, ...) {
   cat("Call:\n")
   print(x$call)
   cat("\n")
   print(coef(x), digits=digits)
-  cat("\nResidual standard deviation =", 
+  cat("\nResidual standard deviation =",
       paste0(format(x$sigma, digits=digits), ",  R-squared analog ="), Rsq(x))
   invisible(x)
 }
 
+#' @rdname model.matrix.2sls
+#' @param vcov. Function to compute the coefficient covariance matrix or the matrix itself;
+#'   the default is the function \code{vcov}.
+#' @export
 summary.2sls <- function (object, digits = getOption("digits") - 2, vcov.=vcov, ...){
   df <- df.residual(object)
   std.errors <- if (is.function(vcov.)) {
     sqrt(diag(V <- vcov.(object)))
   } else {
     if (!is.matrix(vcov.)) stop("vcov. must be a function or a matrix")
-    if (!(ncol(vcov.) == nrow(vcov.)) || ncol(vcov.) != length(coef(object))) 
+    if (!(ncol(vcov.) == nrow(vcov.)) || ncol(vcov.) != length(coef(object)))
       stop("vcov. matrix is of the wrong dimensions")
     sqrt(diag(V <- vcov.))
   }
@@ -188,14 +335,17 @@ summary.2sls <- function (object, digits = getOption("digits") - 2, vcov.=vcov, 
   F <-  (b %*% solve(V) %*% b) / length(b)
   pval <- pf(F, length(b), df, lower.tail=FALSE)
   result <- list(call=object$call,
-                 residuals = summary(residuals(object)), 
-                 coefficients = table, digits = digits, s = object$s, 
-                 df = df, dfn=length(b), na.action=object$na.action, r2=Rsq(object), 
+                 residuals = summary(residuals(object)),
+                 coefficients = table, digits = digits, s = object$s,
+                 df = df, dfn=length(b), na.action=object$na.action, r2=Rsq(object),
                  r2adj=Rsq(object, adjust=TRUE), F=F, pval=pval)
   class(result) <- "summary.2sls"
   result
 }
 
+#' @rdname model.matrix.2sls
+#' @method print summary.2sls
+#' @export
 print.summary.2sls <- function (x, ...) {
   digits <- x$digits
   cat("Call:\n")
@@ -204,13 +354,13 @@ print.summary.2sls <- function (x, ...) {
   print(round(x$residuals, digits))
   cat("\nCoefficients:\n")
   printCoefmat(x$coefficients, digits = digits)
-  cat("\nResidual standard deviation =", round(x$s, digits), 
+  cat("\nResidual standard deviation =", round(x$s, digits),
             "on", x$df, "degrees of freedom")
-  cat("\nR-squared analog =", paste0(format(x$r2, digits=digits), 
-                                     ",  Adjusted R-squared ="), 
+  cat("\nR-squared analog =", paste0(format(x$r2, digits=digits),
+                                     ",  Adjusted R-squared ="),
       format(x$r2adj, digits=digits))
-  cat("\nF =", paste0(format(x$F, digits=digits), " on ", x$dfn, " and ", x$df), 
-      "degrees of freedom, p", if (x$pval < .Machine$double.eps) "" else "=", 
+  cat("\nF =", paste0(format(x$F, digits=digits), " on ", x$dfn, " and ", x$df),
+      "degrees of freedom, p", if (x$pval < .Machine$double.eps) "" else "=",
       format.pval(x$pval, digits=digits), "\n\n")
   if (!is.null(x$na.action)){
     cat(paste(length(x$na.action), "cases deleted due to NAs\n\n"))
@@ -218,6 +368,13 @@ print.summary.2sls <- function (x, ...) {
   invisible(x)
 }
 
+#' @rdname model.matrix.2sls
+#' @param model.2 A second object of class \code{"2sls"}.
+#' @param s2 the estimated error variance (optional);
+#'   if not specified, taken from the larger model.
+#' @param dfe the estimated degrees of freedom for error (optional);
+#'   if not specified, taken from the larger model.
+#' @export
 anova.2sls <- function(object, model.2, s2, dfe, ...){
   if (!inherits(model.2, "2sls")) stop('requires two models of class 2sls')
   s2.1 <- object$s^2
@@ -250,24 +407,30 @@ anova.2sls <- function(object, model.2, s2, dfe, ...){
     rows <- c("Model 1", "Model 2", "Error")
   }
   table <- data.frame(Res.Df, RSS, Df, SS, f, P)
-  head.1 <- paste("Model 1: ",format(object$formula), "  Instruments:", 
+  head.1 <- paste("Model 1: ",format(object$formula), "  Instruments:",
                   format(object$instruments))
-  head.2 <- paste("Model 2: ",format(model.2$formula), "  Instruments:", 
+  head.2 <- paste("Model 2: ",format(model.2$formula), "  Instruments:",
                   format(model.2$instruments))
   names(table) <- c("Res.Df", "RSS", "Df", "Sum of Sq", "F", "Pr(>F)")
   row.names(table) <- rows
-  structure(table, heading = c("Analysis of Variance", "", head.1, head.2, ""), 
+  structure(table, heading = c("Analysis of Variance", "", head.1, head.2, ""),
             class = c("anova", "data.frame"))
 }
 
+#' @rdname model.matrix.2sls
+#' @param formula. Updated model formula.
+#' @param instruments. Updated one-sided formula for the instrumental variables.
+#' @param evaluate If \code{TRUE} (the default) evaluate the updated model;
+#'   if \code{FALSE} simply generate the updated call.
+#' @export
 update.2sls <- function (object, formula., instruments., ..., evaluate=TRUE){
   # adapted from stats::update.default()
-  if (is.null(call <- getCall(object))) 
+  if (is.null(call <- getCall(object)))
     stop("need an object with call component")
   extras <- match.call(expand.dots = FALSE)$...
-  if (!missing(formula.)) 
+  if (!missing(formula.))
     call$formula <- update(formula(object), formula.)
-  if (!missing(instruments.)) 
+  if (!missing(instruments.))
     call$instruments <- update(object$instruments, instruments.)
   if (length(extras)) {
     existing <- !is.na(match(names(extras), names(call)))
@@ -277,7 +440,7 @@ update.2sls <- function (object, formula., instruments., ..., evaluate=TRUE){
       call <- as.call(call)
     }
   }
-  if (evaluate) 
+  if (evaluate)
     eval(call, parent.frame())
   else call
 }

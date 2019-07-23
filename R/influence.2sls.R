@@ -1,9 +1,40 @@
+
+#' Deletion Diagnostic Methods for \code{"2sls"} Objects
+#'
+#' @param model A \code{"2sls"} or \code{"influence.2sls"} object.
+#' @param sigma. A if \code{TRUE} (the default for 1000 or fewer cases), the deleted value
+#' of the residual standard deviation is computed for each case; if \code{FALSE}, the
+#' overall residual standard deviation is used to compute other deletion diagnostics.
+#' @param type If \code{"stage2"} (the default) hatvalues are for the second stage regression;
+#' if \code{"both"} the hatvalues are the geometric mean of the casewise hatvalues for the
+#' two stages.
+#' @param ... Not used.
+#'
+#' @return In the case of \code{influence.2sls}, an object of class \code{"influence.2sls"}
+#' with the following components:
+#' \describe{
+#' \item{\code{dfbeta}}{influence on coefficients.}
+#' \item{\code{sigma}}{deleted values of residual standard deviation.}
+#' \item{\code{dffits}}{overall influence on regression coefficients.}
+#' \item{\code{cookd}}{Cook's distances.}
+#' \item{\code{hatvalues}}{hatvalues.}
+#' \item{\code{rstudent}}{Studentized residuals.}
+#' }
+#' In the case of other methods, such as \code{rstudent.2sls} or
+#' \code{rstudent.influence.2sls}, the corresponding diagnostic statistics.
+#'
+#' @description Methods for computing deletion diagnostics for 2SLS regression.
+#' It's generally more efficient to compute the diagnostics via the \code{influence}
+#' method and then to extract the various specific diagnostics with the methods for
+#' \code{"influence.2sls"} objects.
+#'
+#' @export
 influence.2sls <- function(model, sigma. = n <= 1e3, type=c("stage2", "both"), ...){
 
   if (!is.null(model$weights)) stop("weights not supported") #TODO: support weights?
-  
+
   type <- match.arg(type)
-  
+
   Z <- model$model.matrix.instruments
   X <- model$model.matrix
   X.fit <- model$fitted.1
@@ -12,14 +43,14 @@ influence.2sls <- function(model, sigma. = n <= 1e3, type=c("stage2", "both"), .
   res <- model$residuals
   sigma2 <- model$sigma^2
   hatvalues <-  na.omit(hatvalues(model, type=type))
-  
+
   na.action <- model$na.action
-  
+
   rnames <- rownames(X)
   cnames <- colnames(X)
-  
+
   names(hatvalues) <- rnames
-  
+
   rss <- sum(res^2)
   ZtZinv <- solve(crossprod(Z)) #TODO: avoid matrix inversions?
   XtZ <- crossprod(X, Z)
@@ -28,7 +59,7 @@ influence.2sls <- function(model, sigma. = n <= 1e3, type=c("stage2", "both"), .
   pi <- ZtZinv %*% crossprod(Z, y)
   r <- XtZ %*% ZtZinv %*% t(Z)
   XfXfinv <- solve(crossprod(X.fit))
-  
+
   n <- model$n
   p <- model$p
   dfbeta <- matrix(0, n, p)
@@ -37,7 +68,7 @@ influence.2sls <- function(model, sigma. = n <= 1e3, type=c("stage2", "both"), .
   dffits <- cookd <- rep(0, n)
   sigma <- rep(sqrt(sigma2), n)
   names(dffits) <- names(sigma) <- names(cookd) <- rnames
-  
+
   for (i in 1:n){ #TODO: move this loop to cpp code?
     c <- as.vector(Z[i, ] %*% ZtZinv %*% Z[i, ])
     Xmr <- X[i, ] - r[, i]
@@ -53,46 +84,60 @@ influence.2sls <- function(model, sigma. = n <= 1e3, type=c("stage2", "both"), .
     dfbeta[i, ] <- - Ainv %*% g
     if (sigma.){
       ss <- rss + as.vector(g %*% Ainv %*% crossprod(X[-i, ]) %*% Ainv %*% g) -
-        2 * as.vector(g %*% Ainv %*% t(X[-i, ]) %*% (y[-i] - X[-i, ] %*% b))  - 
+        2 * as.vector(g %*% Ainv %*% t(X[-i, ]) %*% (y[-i] - X[-i, ] %*% b))  -
         as.vector(y[i] - X[i, ] %*% b)^2
       sigma[i] <- sqrt(ss/(n - p - 1))
     }
     dffits[i] <- as.vector(X[i, ] %*% dfbeta[i, ])/
       (sigma[i] * as.vector(sqrt(X[i, ] %*% XfXfinv %*% X[i, ])))
   }
-  
+
+
   rstudent <- res/(sigma * sqrt(1 - hatvalues))
+
   cookd <- (sigma^2/sigma2)*dffits^2/p
-  
-  result <- list(dfbeta = naresid(na.action, dfbeta), 
-                 sigma = naresid(na.action, sigma), 
-                 dffits = naresid(na.action, dffits), 
-                 cookd = naresid(na.action, cookd), 
-                 hatvalues = naresid(na.action, hatvalues), 
+
+  result <- list(dfbeta = naresid(na.action, dfbeta),
+                 sigma = naresid(na.action, sigma),
+                 dffits = naresid(na.action, dffits),
+                 cookd = naresid(na.action, cookd),
+                 hatvalues = naresid(na.action, hatvalues),
                  rstudent = naresid(na.action, rstudent))
   class(result) <- "influence.2sls"
   result
 }
 
-rstudent.influence.2sls <- function(model, ...) model$rstudent
+#' @rdname influence.2sls
+#' @export
+rstudent.2sls <- function(model, ...) {
+  influence(model)$rstudent
+}
 
-rstudent.2sls <- function(model, ...) influence(model)$rstudent
+#' @rdname influence.2sls
+#' @export
+cooks.distance.2sls <- function(model, ...) {
+  influence(model)$cookd
+}
 
-hatvalues.influence.2sls <- function(model, ...) model$hatvalues
+#' @rdname influence.2sls
+#' @export
+dfbeta.influence.2sls <- function(model, ...) {
+  model$dfbeta
+}
 
-cooks.distance.influence.2sls <- function(model, ...) model$cookd
+#' @rdname influence.2sls
+#' @export
+dfbeta.2sls <- function(model, ...) {
+  influence(model)$dfbeta
+}
 
-cooks.distance.2sls <- function(model, ...) influence(model)$cookd
-
-dfbeta.influence.2sls <- function(model, ...) model$dfbeta
-
-dfbeta.2sls <- function(model, ...) influence(model)$dfbeta
-
+#' @rdname influence.2sls
+#' @export
 hatvalues.2sls <- function(model, type=c("stage2", "both"), ...){
   type <- match.arg(type)
   hatvalues <- if (type == "stage2") NextMethod() else {
     hat.2 <- lm.influence(model)$hat
-    model[c("qr", "rank", "residuals", "coefficients")] <- 
+    model[c("qr", "rank", "residuals", "coefficients")] <-
       list(model$qr.1, model$rank.1, model$residuals.1, model$coefficients.1)
     hat.1 <- lm.influence(model)$hat
     sqrt(hat.1*hat.2)
@@ -101,3 +146,26 @@ hatvalues.2sls <- function(model, type=c("stage2", "both"), ...){
   if(class(na.action) == "exclude") hatvalues[na.action]  <- NA
   hatvalues
 }
+
+#' @rdname influence.2sls
+#' @method rstudent influence.2sls
+#' @export
+rstudent.influence.2sls <- function(model, ...) {
+  model$rstudent
+}
+
+#' @rdname influence.2sls
+#' @method hatvalues influence.2sls
+#' @export
+hatvalues.influence.2sls <- function(model, ...) {
+  model$hatvalues
+}
+
+#' @rdname influence.2sls
+#' @export
+#' @method cooks.distance influence.2sls
+cooks.distance.influence.2sls <- {
+  function(model, ...) model$cookd
+}
+
+
