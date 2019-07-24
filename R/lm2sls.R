@@ -232,7 +232,8 @@ lm2sls <- function (formula, instruments=rhs(formula), data, subset, weights,
 
 #' Methods for \code{"2sls"} Objects
 #' @aliases 2SLS_Methods
-#'
+#' @description Various methods for processing \code{"2sls"} objects; for diagnostic methods,
+#'   see \link{2SLS_Diagnostics}.
 #' @param object An object of class \code{"2sls"}.
 #' @param type Type of object desired, varies by method:
 #' \describe{
@@ -248,6 +249,7 @@ lm2sls <- function (formula, instruments=rhs(formula), data, subset, weights,
 #' @importFrom stats model.matrix
 #' @export
 #' @method model.matrix 2sls
+#' @seealso \code{\link{lm2sls}}, \link{2SLS_Diagnostics}
 #' @examples
 #' kmenta.eq1 <- lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta)
 #' coef(kmenta.eq1) # estimates

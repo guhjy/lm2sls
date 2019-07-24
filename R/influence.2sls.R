@@ -27,10 +27,15 @@
 #' @description Methods for computing deletion diagnostics for 2SLS regression.
 #' It's generally more efficient to compute the diagnostics via the \code{influence}
 #' method and then to extract the various specific diagnostics with the methods for
-#' \code{"influence.2sls"} objects.
+#' \code{"influence.2sls"} objects. Other diagnostics for linear models, such as
+#' added-variable plots (\code{\link[car]{avPlots}}) and component-plus-residual
+#' plots (\code{\link[car]{crPlots}}), also work, as do effect plots
+#' (e.g., \code{\link[effects]{predictorEffects}}) with residuals (see the examples below).
 #'
 #' @importFrom stats influence
 #' @export
+#' @seealso \code{\link{lm2sls}}, \link{2SLS_Methods}, \code{\link[car]{avPlots}},
+#'   \code{\link[car]{avPlots}}, \code{\link[effects]{predictorEffects}}
 #' @examples
 #' kmenta.eqn1 <- lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta)
 #' car::avPlots(kmenta.eqn1)

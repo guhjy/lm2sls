@@ -84,7 +84,8 @@ if not specified, taken from the larger model.}
 if \code{FALSE} simply generate the updated call.}
 }
 \description{
-Methods for \code{"2sls"} Objects
+Various methods for processing \code{"2sls"} objects; for diagnostic methods,
+  see \link{2SLS_Diagnostics}.
 }
 \examples{
 kmenta.eq1 <- lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta)
@@ -93,4 +94,7 @@ sqrt(diag(vcov(kmenta.eq1))) # std. errors
 summary(kmenta.eq1)
 summary(kmenta.eq1, vcov.=sandwich::sandwich) # sandwich SEs
 plot(fitted(kmenta.eq1), residuals(kmenta.eq1)) # residuals vs fitted values
+}
+\seealso{
+\code{\link{lm2sls}}, \link{2SLS_Diagnostics}
 }
