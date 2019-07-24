@@ -31,6 +31,15 @@
 #'
 #' @importFrom stats influence
 #' @export
+#' @examples
+#' kmenta.eqn1 <- lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta)
+#' car::avPlots(kmenta.eqn1)
+#' car::crPlots(kmenta.eqn1)
+#' car::influencePlot(kmenta.eqn1)
+#' car::influenceIndexPlot(kmenta.eqn1)
+#' if (require(effects)){
+#'   plot(effects::predictorEffects(kmenta.eqn1, residuals=TRUE))
+#' }
 influence.2sls <- function(model, sigma. = n <= 1e3, type=c("stage2", "both"), ...){
 
   if (!is.null(model$weights)) stop("weights not supported") #TODO: support weights?

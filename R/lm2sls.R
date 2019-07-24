@@ -248,6 +248,13 @@ lm2sls <- function (formula, instruments=rhs(formula), data, subset, weights,
 #' @importFrom stats model.matrix
 #' @export
 #' @method model.matrix 2sls
+#' @examples
+#' kmenta.eq1 <- lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta)
+#' coef(kmenta.eq1) # estimates
+#' sqrt(diag(vcov(kmenta.eq1))) # std. errors
+#' summary(kmenta.eq1)
+#' summary(kmenta.eq1, vcov.=sandwich::sandwich) # sandwich SEs
+#' plot(fitted(kmenta.eq1), residuals(kmenta.eq1)) # residuals vs fitted values
 model.matrix.2sls <- function(object, type=c("model", "instruments", "stage2"), ...){
   type <- match.arg(type)
   switch(type,
@@ -495,7 +502,7 @@ Rsq <- function(model, ...){
   UseMethod("Rsq")
 }
 
-#' @rdname model.matrix.2sls
+#' @rdname Rsq
 #' @export
 #' @param adjusted If \code{TRUE} (the default is \code{FALSE}) return the $R^2$ adjusted
 #' for degrees of freedom.

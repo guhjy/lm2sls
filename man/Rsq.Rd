@@ -2,14 +2,20 @@
 % Please edit documentation in R/lm2sls.R
 \name{Rsq}
 \alias{Rsq}
+\alias{Rsq.default}
 \title{R-Squares Analog}
 \usage{
 Rsq(model, ...)
+
+\method{Rsq}{default}(model, adjusted = FALSE, ...)
 }
 \arguments{
 \item{model}{A model object.}
 
 \item{...}{Possible arguments for specific methods.}
+
+\item{adjusted}{If \code{TRUE} (the default is \code{FALSE}) return the $R^2$ adjusted
+for degrees of freedom.}
 }
 \description{
 R-Squares Analog

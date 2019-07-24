@@ -14,7 +14,6 @@
 \alias{update.2sls}
 \alias{bread.2sls}
 \alias{estfun.2sls}
-\alias{Rsq.default}
 \title{Methods for \code{"2sls"} Objects}
 \usage{
 \method{model.matrix}{2sls}(object, type = c("model", "instruments",
@@ -44,8 +43,6 @@
 \method{bread}{2sls}(x, ...)
 
 \method{estfun}{2sls}(x, ...)
-
-\method{Rsq}{default}(model, adjusted = FALSE, ...)
 }
 \arguments{
 \item{object}{An object of class \code{"2sls"}.}
@@ -85,10 +82,15 @@ if not specified, taken from the larger model.}
 
 \item{evaluate}{If \code{TRUE} (the default) evaluate the updated model;
 if \code{FALSE} simply generate the updated call.}
-
-\item{adjusted}{If \code{TRUE} (the default is \code{FALSE}) return the $R^2$ adjusted
-for degrees of freedom.}
 }
 \description{
 Methods for \code{"2sls"} Objects
+}
+\examples{
+kmenta.eq1 <- lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta)
+coef(kmenta.eq1) # estimates
+sqrt(diag(vcov(kmenta.eq1))) # std. errors
+summary(kmenta.eq1)
+summary(kmenta.eq1, vcov.=sandwich::sandwich) # sandwich SEs
+plot(fitted(kmenta.eq1), residuals(kmenta.eq1)) # residuals vs fitted values
 }

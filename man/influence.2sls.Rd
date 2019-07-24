@@ -65,3 +65,13 @@ It's generally more efficient to compute the diagnostics via the \code{influence
 method and then to extract the various specific diagnostics with the methods for
 \code{"influence.2sls"} objects.
 }
+\examples{
+kmenta.eqn1 <- lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta)
+car::avPlots(kmenta.eqn1)
+car::crPlots(kmenta.eqn1)
+car::influencePlot(kmenta.eqn1)
+car::influenceIndexPlot(kmenta.eqn1)
+if (require(effects)){
+  plot(effects::predictorEffects(kmenta.eqn1, residuals=TRUE))
+}
+}
