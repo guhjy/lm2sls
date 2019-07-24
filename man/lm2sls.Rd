@@ -73,7 +73,7 @@ those returned by \code{\link{fit2sls}}:
 Provides a formula-based interface for 2SLS estimation of
 a linear model. Computations are done by \code{\link{fit2sls}}. The returned object has
 the necessary information for computing a variety of
-\link[=2SLS Diagnostics]{regression diagnostics}.
+\link[=2SLS_Diagnostics]{regression diagnostics}.
 }
 \examples{
 summary(lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta))     # demand equation
@@ -81,8 +81,8 @@ summary(lm2sls(Q ~ P + F + A, ~ D + F + A, data=Kmenta)) # supply equation
 
 }
 \seealso{
-\code{\link[stats]{lm}}, \code{\link[stats]{formula}}, \code{\link{2SLS Methods}},
-\code{\link{2SLS Diagnostics}}
+\code{\link[stats]{lm}}, \code{\link[stats]{formula}}, \code{\link{2SLS_Methods}},
+\code{\link{2SLS_Diagnostics}}
 }
 \author{
 John Fox \email{jfox@mcmaster.ca}

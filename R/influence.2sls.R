@@ -1,6 +1,7 @@
 
 #' Deletion Diagnostic Methods for \code{"2sls"} Objects
 #'
+#' @aliases 2SLS_Diagnostics
 #' @param model A \code{"2sls"} or \code{"influence.2sls"} object.
 #' @param sigma. A if \code{TRUE} (the default for 1000 or fewer cases), the deleted value
 #' of the residual standard deviation is computed for each case; if \code{FALSE}, the
@@ -28,6 +29,7 @@
 #' method and then to extract the various specific diagnostics with the methods for
 #' \code{"influence.2sls"} objects.
 #'
+#' @importFrom stats influence
 #' @export
 influence.2sls <- function(model, sigma. = n <= 1e3, type=c("stage2", "both"), ...){
 
@@ -108,12 +110,15 @@ influence.2sls <- function(model, sigma. = n <= 1e3, type=c("stage2", "both"), .
 }
 
 #' @rdname influence.2sls
+#' @importFrom stats rstudent
 #' @export
 rstudent.2sls <- function(model, ...) {
   influence(model)$rstudent
 }
 
 #' @rdname influence.2sls
+#' @importFrom stats cooks.distance
+#' @method cooks.distance 2sls
 #' @export
 cooks.distance.2sls <- function(model, ...) {
   influence(model)$cookd
@@ -126,12 +131,14 @@ dfbeta.influence.2sls <- function(model, ...) {
 }
 
 #' @rdname influence.2sls
+#' @importFrom stats dfbeta
 #' @export
 dfbeta.2sls <- function(model, ...) {
   influence(model)$dfbeta
 }
 
 #' @rdname influence.2sls
+#' @importFrom stats hatvalues lm.influence
 #' @export
 hatvalues.2sls <- function(model, type=c("stage2", "both"), ...){
   type <- match.arg(type)

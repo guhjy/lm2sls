@@ -2,6 +2,7 @@
 % Please edit documentation in R/influence.2sls.R
 \name{influence.2sls}
 \alias{influence.2sls}
+\alias{2SLS_Diagnostics}
 \alias{rstudent.2sls}
 \alias{cooks.distance.2sls}
 \alias{dfbeta.influence.2sls}

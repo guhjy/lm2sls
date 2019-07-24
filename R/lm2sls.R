@@ -30,6 +30,7 @@
 #'   \item{\code{fitted.2}}{stage-2 fitted values}
 #' }
 #'
+#' @importFrom stats lsfit naresid napredict
 #' @export
 #'
 #' @description The work-horse 2SLS function, not normally meant to be called directly
@@ -162,13 +163,14 @@ fit2sls <- function(y, X, Z, wt=NULL, singular.ok=FALSE, qr=TRUE){
 #' @description   Provides a formula-based interface for 2SLS estimation of
 #' a linear model. Computations are done by \code{\link{fit2sls}}. The returned object has
 #' the necessary information for computing a variety of
-#' \link[=2SLS Diagnostics]{regression diagnostics}.
+#' \link[=2SLS_Diagnostics]{regression diagnostics}.
 #'
 #' @author John Fox \email{jfox@mcmaster.ca}
 #'
-#' @seealso \code{\link[stats]{lm}}, \code{\link[stats]{formula}}, \code{\link{2SLS Methods}},
-#' \code{\link{2SLS Diagnostics}}
+#' @seealso \code{\link[stats]{lm}}, \code{\link[stats]{formula}}, \code{\link{2SLS_Methods}},
+#' \code{\link{2SLS_Diagnostics}}
 #'
+#' @importFrom stats model.weights .getXlevels
 #' @export
 #'
 #' @examples
@@ -229,6 +231,7 @@ lm2sls <- function (formula, instruments=rhs(formula), data, subset, weights,
 
 
 #' Methods for \code{"2sls"} Objects
+#' @aliases 2SLS_Methods
 #'
 #' @param object An object of class \code{"2sls"}.
 #' @param type Type of object desired, varies by method:
@@ -239,10 +242,10 @@ lm2sls <- function (formula, instruments=rhs(formula), data, subset, weights,
 #'     \code{"working"} (equivalent to \code{"model"}), \code{"deviance"},
 #'     \code{"pearson"} (equivalent to \code{"deviance"}), or \code{"partial"}.}
 #'   \item{\code{fitted}}{\code{"model"}, \code{"stage1"}, or \code{"stage2"}.}
-#'   \item{\code{}}{}
 #'   }
 #' @param ... to match generics, not generally used.
 #'
+#' @importFrom stats model.matrix
 #' @export
 #' @method model.matrix 2sls
 model.matrix.2sls <- function(object, type=c("model", "instruments", "stage2"), ...){
@@ -255,6 +258,7 @@ model.matrix.2sls <- function(object, type=c("model", "instruments", "stage2"), 
 
 #' @rdname model.matrix.2sls
 #' @param model An object of class \code{"2sls"}.
+#' @importFrom car avPlot
 #' @export
 avPlot.2sls <- function(model, ...){
   model$model.matrix <- model.matrix(model, type="stage2")
@@ -262,12 +266,14 @@ avPlot.2sls <- function(model, ...){
 }
 
 #' @rdname model.matrix.2sls
+#' @importFrom stats vcov
 #' @export
 vcov.2sls <- function(object, ...) {
   object$vcov
 }
 
 #' @rdname model.matrix.2sls
+#' @importFrom stats residuals predict
 #' @export
 residuals.2sls <- function(object, type=c("model", "stage1", "stage2", "working",
                                           "deviance", "pearson", "partial"), ...){
@@ -286,6 +292,7 @@ residuals.2sls <- function(object, type=c("model", "stage1", "stage2", "working"
 }
 
 #' @rdname model.matrix.2sls
+#' @importFrom stats fitted
 #' @export
 fitted.2sls <- function(object, type=c("model", "stage1", "stage2"), ...){
   type <- match.arg(type)
@@ -298,6 +305,7 @@ fitted.2sls <- function(object, type=c("model", "stage1", "stage2"), ...){
 #' @rdname model.matrix.2sls
 #' @param x An object of class \code{"2sls"}.
 #' @param digits Digits to print.
+#' @importFrom stats coef
 #' @export
 print.2sls <- function (x, digits = getOption("digits") - 2, ...) {
   cat("Call:\n")
@@ -312,6 +320,7 @@ print.2sls <- function (x, digits = getOption("digits") - 2, ...) {
 #' @rdname model.matrix.2sls
 #' @param vcov. Function to compute the coefficient covariance matrix or the matrix itself;
 #'   the default is the function \code{vcov}.
+#' @importFrom stats pt getCall formula
 #' @export
 summary.2sls <- function (object, digits = getOption("digits") - 2, vcov.=vcov, ...){
   df <- df.residual(object)
@@ -345,6 +354,7 @@ summary.2sls <- function (object, digits = getOption("digits") - 2, vcov.=vcov, 
 
 #' @rdname model.matrix.2sls
 #' @method print summary.2sls
+#' @importFrom stats printCoefmat
 #' @export
 print.summary.2sls <- function (x, ...) {
   digits <- x$digits
@@ -374,6 +384,7 @@ print.summary.2sls <- function (x, ...) {
 #'   if not specified, taken from the larger model.
 #' @param dfe the estimated degrees of freedom for error (optional);
 #'   if not specified, taken from the larger model.
+#' @importFrom stats anova pf
 #' @export
 anova.2sls <- function(object, model.2, s2, dfe, ...){
   if (!inherits(model.2, "2sls")) stop('requires two models of class 2sls')
@@ -422,6 +433,7 @@ anova.2sls <- function(object, model.2, s2, dfe, ...){
 #' @param instruments. Updated one-sided formula for the instrumental variables.
 #' @param evaluate If \code{TRUE} (the default) evaluate the updated model;
 #'   if \code{FALSE} simply generate the updated call.
+#' @importFrom stats update
 #' @export
 update.2sls <- function (object, formula., instruments., ..., evaluate=TRUE){
   # adapted from stats::update.default()
@@ -445,6 +457,9 @@ update.2sls <- function (object, formula., instruments., ..., evaluate=TRUE){
   else call
 }
 
+#' @rdname model.matrix.2sls
+#' @importFrom sandwich bread
+#' @export
 bread.2sls <- function(x, ...){
   x$vcov*x$n/x$sigma^2
 }
@@ -457,6 +472,9 @@ diagprod <- function(d, X){
   d*X
 }
 
+#' @rdname model.matrix.2sls
+#' @importFrom sandwich estfun
+#' @export
 estfun.2sls <- function (x, ...) {
   if (x$rank < x$p) stop("second stage model matrix is of deficient rank")
   w <- x$weights
@@ -464,14 +482,26 @@ estfun.2sls <- function (x, ...) {
   diagprod(w*residuals(x), model.matrix(x, type="stage2"))
 }
 
-
+#' R-Squares Analog
+#'
+#' @param model A model object.
+#' @param ... Possible arguments for specific methods.
+#' @importFrom stats na.omit model.response model.frame df.residual
+#' @export
+#'
+#' @examples
+#' Rsq(lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta))
 Rsq <- function(model, ...){
   UseMethod("Rsq")
 }
 
+#' @rdname model.matrix.2sls
+#' @export
+#' @param adjusted If \code{TRUE} (the default is \code{FALSE}) return the $R^2$ adjusted
+#' for degrees of freedom.
 Rsq.default <- function(model, adjusted=FALSE, ...){
   SSE <- sum(residuals(model)^2, na.rm=TRUE)
-  y <- na.rm(model.response(model.frame(model)))
+  y <- na.omit(model.response(model.frame(model)))
   SST <- sum((y - mean(y))^2)
   if (adjusted) {
     1 - (SSE/df.residual(model))/(SST/(model$n - 1))

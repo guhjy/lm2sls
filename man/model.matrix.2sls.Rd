@@ -2,6 +2,7 @@
 % Please edit documentation in R/lm2sls.R
 \name{model.matrix.2sls}
 \alias{model.matrix.2sls}
+\alias{2SLS_Methods}
 \alias{avPlot.2sls}
 \alias{vcov.2sls}
 \alias{residuals.2sls}
@@ -11,12 +12,15 @@
 \alias{print.summary.2sls}
 \alias{anova.2sls}
 \alias{update.2sls}
+\alias{bread.2sls}
+\alias{estfun.2sls}
+\alias{Rsq.default}
 \title{Methods for \code{"2sls"} Objects}
 \usage{
 \method{model.matrix}{2sls}(object, type = c("model", "instruments",
   "stage2"), ...)
 
-avPlot.2sls(model, ...)
+\method{avPlot}{2sls}(model, ...)
 
 \method{vcov}{2sls}(object, ...)
 
@@ -36,6 +40,12 @@ avPlot.2sls(model, ...)
 
 \method{update}{2sls}(object, formula., instruments., ...,
   evaluate = TRUE)
+
+\method{bread}{2sls}(x, ...)
+
+\method{estfun}{2sls}(x, ...)
+
+\method{Rsq}{default}(model, adjusted = FALSE, ...)
 }
 \arguments{
 \item{object}{An object of class \code{"2sls"}.}
@@ -48,7 +58,6 @@ avPlot.2sls(model, ...)
     \code{"working"} (equivalent to \code{"model"}), \code{"deviance"},
     \code{"pearson"} (equivalent to \code{"deviance"}), or \code{"partial"}.}
   \item{\code{fitted}}{\code{"model"}, \code{"stage1"}, or \code{"stage2"}.}
-  \item{\code{}}{}
   }}
 
 \item{...}{to match generics, not generally used.}
@@ -76,6 +85,9 @@ if not specified, taken from the larger model.}
 
 \item{evaluate}{If \code{TRUE} (the default) evaluate the updated model;
 if \code{FALSE} simply generate the updated call.}
+
+\item{adjusted}{If \code{TRUE} (the default is \code{FALSE}) return the $R^2$ adjusted
+for degrees of freedom.}
 }
 \description{
 Methods for \code{"2sls"} Objects
