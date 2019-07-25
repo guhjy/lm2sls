@@ -8,7 +8,11 @@
 #' overall residual standard deviation is used to compute other deletion diagnostics.
 #' @param type If \code{"stage2"} (the default) hatvalues are for the second stage regression;
 #' if \code{"both"} the hatvalues are the geometric mean of the casewise hatvalues for the
-#' two stages.
+#' two stages; if \code{"maximum"} the hatvalues are the larger of the casewise
+#' hatvalues for the two stages. In computing the geometric mean or casewise maximum hatvalues
+#' the hatvalues for each stage are first divided by their average (number of coefficients in
+#' stage regression/number of cases); the geometric mean or casewise maximum values are then
+#' multiplied by the average hatvalue from the second stage.
 #' @param ... Not used.
 #'
 #' @return In the case of \code{influence.2sls}, an object of class \code{"influence.2sls"}
@@ -154,14 +158,24 @@ dfbeta.2sls <- function(model, ...) {
 #' @rdname influence.2sls
 #' @importFrom stats hatvalues lm.influence
 #' @export
-hatvalues.2sls <- function(model, type=c("stage2", "both"), ...){
+hatvalues.2sls <- function(model, type=c("stage2", "both", "maximum"), ...){
   type <- match.arg(type)
   hatvalues <- if (type == "stage2") NextMethod() else {
-    hat.2 <- lm.influence(model)$hat
+    n <- model$n
+    p <- model$p
+    q <- model$q
+    mean1 <- q/n
+    mean2 <- p/n
+    hat.2 <- lm.influence(model)$hat/mean2
     model[c("qr", "rank", "residuals", "coefficients")] <-
       list(model$qr.1, model$rank.1, model$residuals.1, model$coefficients.1)
-    hat.1 <- lm.influence(model)$hat
-    sqrt(hat.1*hat.2)
+    hat.1 <- lm.influence(model)$hat/mean1
+    hat <- if (type == "both") {
+      sqrt(hat.1*hat.2)
+    } else {
+      pmax(hat.1, hat.2)
+    }
+    mean2*hat
   }
   na.action <- model$na.action
   if(class(na.action) == "exclude") hatvalues[na.action]  <- NA

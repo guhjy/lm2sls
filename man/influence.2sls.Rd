@@ -24,7 +24,8 @@
 
 \method{dfbeta}{2sls}(model, ...)
 
-\method{hatvalues}{2sls}(model, type = c("stage2", "both"), ...)
+\method{hatvalues}{2sls}(model, type = c("stage2", "both", "maximum"),
+  ...)
 
 \method{rstudent}{influence.2sls}(model, ...)
 
@@ -41,7 +42,11 @@ overall residual standard deviation is used to compute other deletion diagnostic
 
 \item{type}{If \code{"stage2"} (the default) hatvalues are for the second stage regression;
 if \code{"both"} the hatvalues are the geometric mean of the casewise hatvalues for the
-two stages.}
+two stages; if \code{"maximum"} the hatvalues are the larger of the casewise
+hatvalues for the two stages. In computing the geometric mean or casewise maximum hatvalues
+the hatvalues for each stage are first divided by their average (number of coefficients in
+stage regression/number of cases); the geometric mean or casewise maximum values are then
+multiplied by the average hatvalue from the second stage.}
 
 \item{...}{Not used.}
 }
