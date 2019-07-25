@@ -66,7 +66,8 @@
 \item{digits}{Digits to print.}
 
 \item{vcov.}{Function to compute the coefficient covariance matrix or the matrix itself;
-the default is the function \code{vcov}.}
+the default is the function \code{vcov}; set, e.g., to \code{\link[sandwich]{sandwich}}
+(from the \pkg{sandwich} package) to get robust coefficient standard errors.}
 
 \item{model.2}{A second object of class \code{"2sls"}.}
 
@@ -96,5 +97,6 @@ summary(kmenta.eq1, vcov.=sandwich::sandwich) # sandwich SEs
 plot(fitted(kmenta.eq1), residuals(kmenta.eq1)) # residuals vs fitted values
 }
 \seealso{
-\code{\link{lm2sls}}, \link{2SLS_Diagnostics}
+\code{\link{lm2sls}}, \link{2SLS_Diagnostics}, 
+  \code{\link[sandwich]{sandwich}}
 }

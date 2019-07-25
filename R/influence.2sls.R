@@ -3,13 +3,13 @@
 #'
 #' @aliases 2SLS_Diagnostics
 #' @param model A \code{"2sls"} or \code{"influence.2sls"} object.
-#' @param sigma. A if \code{TRUE} (the default for 1000 or fewer cases), the deleted value
+#' @param sigma. If \code{TRUE} (the default for 1000 or fewer cases), the deleted value
 #' of the residual standard deviation is computed for each case; if \code{FALSE}, the
 #' overall residual standard deviation is used to compute other deletion diagnostics.
-#' @param type If \code{"stage2"} (the default) hatvalues are for the second stage regression;
-#' if \code{"both"} the hatvalues are the geometric mean of the casewise hatvalues for the
-#' two stages; if \code{"maximum"} the hatvalues are the larger of the casewise
-#' hatvalues for the two stages. In computing the geometric mean or casewise maximum hatvalues
+#' @param type If \code{"stage2"} (the default), hatvalues are for the second stage regression;
+#' if \code{"both"}, the hatvalues are the geometric mean of the casewise hatvalues for the
+#' two stages; if \code{"maximum"}, the hatvalues are the larger of the casewise
+#' hatvalues for the two stages. In computing the geometric mean or casewise maximum hatvalues,
 #' the hatvalues for each stage are first divided by their average (number of coefficients in
 #' stage regression/number of cases); the geometric mean or casewise maximum values are then
 #' multiplied by the average hatvalue from the second stage.
@@ -18,12 +18,12 @@
 #' @return In the case of \code{influence.2sls}, an object of class \code{"influence.2sls"}
 #' with the following components:
 #' \describe{
-#' \item{\code{dfbeta}}{influence on coefficients.}
-#' \item{\code{sigma}}{deleted values of residual standard deviation.}
-#' \item{\code{dffits}}{overall influence on regression coefficients.}
-#' \item{\code{cookd}}{Cook's distances.}
-#' \item{\code{hatvalues}}{hatvalues.}
-#' \item{\code{rstudent}}{Studentized residuals.}
+#' \item{\code{dfbeta}}{influence on coefficients}
+#' \item{\code{sigma}}{deleted values of the residual standard deviation}
+#' \item{\code{dffits}}{overall influence on the regression coefficients}
+#' \item{\code{cookd}}{Cook's distances}
+#' \item{\code{hatvalues}}{hatvalues}
+#' \item{\code{rstudent}}{Studentized residuals}
 #' }
 #' In the case of other methods, such as \code{rstudent.2sls} or
 #' \code{rstudent.influence.2sls}, the corresponding diagnostic statistics.
@@ -39,7 +39,7 @@
 #' @importFrom stats influence
 #' @export
 #' @seealso \code{\link{lm2sls}}, \link{2SLS_Methods}, \code{\link[car]{avPlots}},
-#'   \code{\link[car]{avPlots}}, \code{\link[effects]{predictorEffects}}
+#'   \code{\link[car]{crPlots}}, \code{\link[effects]{predictorEffects}}
 #' @examples
 #' kmenta.eq1 <- lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta)
 #' car::avPlots(kmenta.eq1)

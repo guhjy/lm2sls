@@ -20,7 +20,7 @@ the model formula and instrumental-variables formula.}
 
 \item{subset}{See \code{\link[stats]{lm}}.}
 
-\item{weights}{An optional vector of invariance-variance weights; if absent the weights
+\item{weights}{An optional vector of inverse-variance weights; if absent the weights
 are set to 1 for all cases.}
 
 \item{na.action}{See \code{\link[stats]{lm}}.}
@@ -44,7 +44,7 @@ the 2SLS regression produces an error.}
 An object of class \code{"2sls"}, with the following elements in addition to
 those returned by \code{\link{fit2sls}}:
 \describe{
-  \item{\code{response name}}{a character string with the name of the response
+  \item{\code{response.name}}{a character string with the name of the response
   variable or possibly the character representation of an expression evaluating
   to the response.}
   \item{\code{formula}}{the model formula.}
@@ -81,7 +81,7 @@ summary(lm2sls(Q ~ P + F + A, ~ D + F + A, data=Kmenta)) # supply equation
 
 }
 \seealso{
-\code{\link[stats]{lm}}, \code{\link[stats]{formula}}, \code{\link{2SLS_Methods}},
+\code{\link{fit2sls}}, \code{\link[stats]{lm}}, \code{\link[stats]{formula}}, \code{\link{2SLS_Methods}},
 \code{\link{2SLS_Diagnostics}}
 }
 \author{

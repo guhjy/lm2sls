@@ -9,9 +9,9 @@ fit2sls(y, X, Z, wt = NULL, singular.ok = FALSE, qr = TRUE)
 \arguments{
 \item{y}{The response variable, a vector.}
 
-\item{X}{The explanatory-variable model matrix.}
+\item{X}{The explanatory-variables model matrix.}
 
-\item{Z}{The instrumental-variable model matrix,}
+\item{Z}{The instrumental-variables model matrix.}
 
 \item{wt}{An optional weight vector.}
 
@@ -30,14 +30,14 @@ A list with the following components:
   \item{\code{qr.1}}{QR decomposition for stage-1 regression}
   \item{\code{rank.1}}{rank of \code{Z}}
   \item{\code{coefficients}}{estimated regression coefficients}
-  \item{\code{coefficients.1}}{coefficient matrix from stage11 regression}
+  \item{\code{coefficients.1}}{coefficient matrix from stage-1 regression}
   \item{\code{vcov}}{covariance matrix of estimated coefficients}
   \item{\code{df.residual}}{residual degrees of freedom for stage-2 regression}
   \item{\code{sigma}}{residual standard deviation}
   \item{\code{residuals}}{response residuals}
   \item{\code{fitted}}{model fitted values}
   \item{\code{residuals.1}}{matrix of stage-1 residuals}
-  \item{\code{fitted.1}}{matrix of stage=1 fitted values}
+  \item{\code{fitted.1}}{matrix of stage-1 fitted values}
   \item{\code{residuals.2}}{stage-2 residuals}
   \item{\code{fitted.2}}{stage-2 fitted values}
 }

@@ -2,8 +2,8 @@
 #' 2SLS Regression
 #'
 #' @param y The response variable, a vector.
-#' @param X The explanatory-variable model matrix.
-#' @param Z The instrumental-variable model matrix,
+#' @param X The explanatory-variables model matrix.
+#' @param Z The instrumental-variables model matrix.
 #' @param wt An optional weight vector.
 #' @param singular.ok Is perfect collinearity tolerable in either stage regression?
 #' @param qr Include the QR decomposition in the returned object.
@@ -18,14 +18,14 @@
 #'   \item{\code{qr.1}}{QR decomposition for stage-1 regression}
 #'   \item{\code{rank.1}}{rank of \code{Z}}
 #'   \item{\code{coefficients}}{estimated regression coefficients}
-#'   \item{\code{coefficients.1}}{coefficient matrix from stage11 regression}
+#'   \item{\code{coefficients.1}}{coefficient matrix from stage-1 regression}
 #'   \item{\code{vcov}}{covariance matrix of estimated coefficients}
 #'   \item{\code{df.residual}}{residual degrees of freedom for stage-2 regression}
 #'   \item{\code{sigma}}{residual standard deviation}
 #'   \item{\code{residuals}}{response residuals}
 #'   \item{\code{fitted}}{model fitted values}
 #'   \item{\code{residuals.1}}{matrix of stage-1 residuals}
-#'   \item{\code{fitted.1}}{matrix of stage=1 fitted values}
+#'   \item{\code{fitted.1}}{matrix of stage-1 fitted values}
 #'   \item{\code{residuals.2}}{stage-2 residuals}
 #'   \item{\code{fitted.2}}{stage-2 fitted values}
 #' }
@@ -120,7 +120,7 @@ fit2sls <- function(y, X, Z, wt=NULL, singular.ok=FALSE, qr=TRUE){
 #' @param data An optional data frame, list, or environment containing the variables in
 #' the model formula and instrumental-variables formula.
 #' @param subset See \code{\link[stats]{lm}}.
-#' @param weights An optional vector of invariance-variance weights; if absent the weights
+#' @param weights An optional vector of inverse-variance weights; if absent the weights
 #' are set to 1 for all cases.
 #' @param na.action See \code{\link[stats]{lm}}.
 #' @param contrasts See \code{\link[stats]{lm}}.
@@ -135,7 +135,7 @@ fit2sls <- function(y, X, Z, wt=NULL, singular.ok=FALSE, qr=TRUE){
 #' @return An object of class \code{"2sls"}, with the following elements in addition to
 #' those returned by \code{\link{fit2sls}}:
 #' \describe{
-#'   \item{\code{response name}}{a character string with the name of the response
+#'   \item{\code{response.name}}{a character string with the name of the response
 #'   variable or possibly the character representation of an expression evaluating
 #'   to the response.}
 #'   \item{\code{formula}}{the model formula.}
@@ -167,7 +167,7 @@ fit2sls <- function(y, X, Z, wt=NULL, singular.ok=FALSE, qr=TRUE){
 #'
 #' @author John Fox \email{jfox@mcmaster.ca}
 #'
-#' @seealso \code{\link[stats]{lm}}, \code{\link[stats]{formula}}, \code{\link{2SLS_Methods}},
+#' @seealso \code{\link{fit2sls}}, \code{\link[stats]{lm}}, \code{\link[stats]{formula}}, \code{\link{2SLS_Methods}},
 #' \code{\link{2SLS_Diagnostics}}
 #'
 #' @importFrom stats model.weights .getXlevels
@@ -249,7 +249,8 @@ lm2sls <- function (formula, instruments=rhs(formula), data, subset, weights,
 #' @importFrom stats model.matrix
 #' @export
 #' @method model.matrix 2sls
-#' @seealso \code{\link{lm2sls}}, \link{2SLS_Diagnostics}
+#' @seealso \code{\link{lm2sls}}, \link{2SLS_Diagnostics}, 
+#'   \code{\link[sandwich]{sandwich}}
 #' @examples
 #' kmenta.eq1 <- lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta)
 #' coef(kmenta.eq1) # estimates
@@ -328,7 +329,9 @@ print.2sls <- function (x, digits = getOption("digits") - 2, ...) {
 
 #' @rdname model.matrix.2sls
 #' @param vcov. Function to compute the coefficient covariance matrix or the matrix itself;
-#'   the default is the function \code{vcov}.
+#'   the default is the function \code{vcov}; set, e.g., to \code{\link[sandwich]{sandwich}}
+#'   (from the \pkg{sandwich} package) to get robust coefficient standard errors.
+#'
 #' @importFrom stats pt getCall formula
 #' @export
 summary.2sls <- function (object, digits = getOption("digits") - 2, vcov.=vcov, ...){
