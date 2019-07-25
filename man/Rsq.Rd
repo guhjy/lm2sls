@@ -14,7 +14,7 @@ Rsq(model, ...)
 
 \item{...}{Possible arguments for specific methods.}
 
-\item{adjusted}{If \code{TRUE} (the default is \code{FALSE}) return the $R^2$ adjusted
+\item{adjusted}{If \code{TRUE} (the default is \code{FALSE}) return the \eqn{R^2} adjusted
 for degrees of freedom.}
 }
 \description{

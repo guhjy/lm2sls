@@ -391,7 +391,7 @@ print.summary.2sls <- function (x, ...) {
 #' @param model.2 A second object of class \code{"2sls"}.
 #' @param s2 the estimated error variance (optional);
 #'   if not specified, taken from the larger model.
-#' @param dfe the estimated degrees of freedom for error (optional);
+#' @param dfe the degrees of freedom for error (optional);
 #'   if not specified, taken from the larger model.
 #' @importFrom stats anova pf
 #' @export
@@ -506,7 +506,7 @@ Rsq <- function(model, ...){
 
 #' @rdname Rsq
 #' @export
-#' @param adjusted If \code{TRUE} (the default is \code{FALSE}) return the $R^2$ adjusted
+#' @param adjusted If \code{TRUE} (the default is \code{FALSE}) return the \eqn{R^2} adjusted
 #' for degrees of freedom.
 Rsq.default <- function(model, adjusted=FALSE, ...){
   SSE <- sum(residuals(model)^2, na.rm=TRUE)

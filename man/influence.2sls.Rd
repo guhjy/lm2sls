@@ -69,13 +69,13 @@ plots (\code{\link[car]{crPlots}}), also work, as do effect plots
 (e.g., \code{\link[effects]{predictorEffects}}) with residuals (see the examples below).
 }
 \examples{
-kmenta.eqn1 <- lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta)
-car::avPlots(kmenta.eqn1)
-car::crPlots(kmenta.eqn1)
-car::influencePlot(kmenta.eqn1)
-car::influenceIndexPlot(kmenta.eqn1)
+kmenta.eq1 <- lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta)
+car::avPlots(kmenta.eq1)
+car::crPlots(kmenta.eq1)
+car::influencePlot(kmenta.eq1)
+car::influenceIndexPlot(kmenta.eq1)
 if (require(effects)){
-  plot(effects::predictorEffects(kmenta.eqn1, residuals=TRUE))
+  plot(effects::predictorEffects(kmenta.eq1, residuals=TRUE))
 }
 }
 \seealso{

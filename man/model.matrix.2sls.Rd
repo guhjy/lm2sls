@@ -73,7 +73,7 @@ the default is the function \code{vcov}.}
 \item{s2}{the estimated error variance (optional);
 if not specified, taken from the larger model.}
 
-\item{dfe}{the estimated degrees of freedom for error (optional);
+\item{dfe}{the degrees of freedom for error (optional);
 if not specified, taken from the larger model.}
 
 \item{formula.}{Updated model formula.}
