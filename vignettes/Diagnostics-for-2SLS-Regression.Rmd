@@ -1,5 +1,8 @@
 ---
 title: "Diagnostics for 2SLS Regression"
+author: "John Fox"
+date: "2019-07-26"
+bibliography: Diagnostics-for-2SLS-Regression.bib
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Diagnostics-for-2SLS-Regression}
@@ -22,7 +25,12 @@ The **lm2sls** package extends a variety of standard numeric and graphical regre
 
 ## Case-Deletion Diagnostics for 2SLS Regression
 
+As far as I can tell, diagnostics for regression models fit by 2SLS is a relatively neglected topic, but it was addressed briefly by @Belsley-Kuh-Welsch-1980 [pp. 266--268].
+
 
 ```{r setup}
 library(lm2sls)
 ```
+
+
+## References
