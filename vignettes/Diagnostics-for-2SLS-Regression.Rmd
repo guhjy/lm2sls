@@ -1,0 +1,28 @@
+---
+title: "Diagnostics for 2SLS Regression"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Diagnostics-for-2SLS-Regression}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Introduction
+
+The **lm2sls** package extends a variety of standard numeric and graphical regression  diagnostics to linear models fit by two-stage least-squares (2SLS) regression, a commonly employed method of instrumental-variables estimation for potentially overidentified structural equations in which there are endogenous regressors. The `fit2sls()` function in the package computes the 2SLS estimator employing a low-level interface not generally intended for direct use, and returns a list containing quantities that faciliate the computation of various diagnostics. The `lm2sls()` function provides a user-friendly formula-based interface to `fit2sls()`.
+
+`lm2sls()` is broadly similar in its usage to the `tsls()` function in the **sem** package and the `ivreg()` function in the **AER** package. Its raison-d'etre therefore is the provision of regression diagnostics. The subject of this vignette is the rationale for the various diagnostics and the use of functions in the **lm2sls** package to compute them, along with functions in other packages (specifically the base-R **stats** package and the **car** and **effects** packages) that work with the `"2sls"` objects produced by `lm2sls()`.
+
+## Case-Deletion Diagnostics for 2SLS Regression
+
+
+```{r setup}
+library(lm2sls)
+```
