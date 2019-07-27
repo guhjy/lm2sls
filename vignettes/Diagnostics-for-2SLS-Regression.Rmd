@@ -42,11 +42,11 @@ Whether we think of the second stage as IV estimation or OLS regression, we can 
 
 ## Case-Deletion Diagnostics for 2SLS Regression
 
-As far as I can tell, diagnostics for regression models fit by 2SLS is a relatively neglected topic, but it was addressed briefly by @Belsley-Kuh-Welsch-1980 [pp. 266--268]. Deletion diagnostics directly assess the influence of each case on a fitted regression model by removing the case, refitting the model, and noting how the regression coefficients or other regression outputs, such as the residual standard deviation, change. 
+As far as I can tell, diagnostics for regression models fit by 2SLS is a relatively neglected topic, but it was addressed briefly by @BelsleyKuhWelsch1980 [pp. 266--268]. Deletion diagnostics directly assess the influence of each case on a fitted regression model by removing the case, refitting the model, and noting how the regression coefficients or other regression outputs, such as the residual standard deviation, change. 
 
 Case-deletion diagnostics can always be obtained by brute-force computation, literally refitting the model with each case removed in turn, but this approach is inefficient and consequently unattractive in large samples. For some classes of statistical models, such as generalized linear models [e.g., @Pregibon1981], computationally less demanding approximations to case-deletion diagnostics are available, and for linear models efficient updating formulas are available (as described, e.g., by Belseley, Kuh, and Welsch) that permit the exact computation of case-deletion diagnostics. As it turns out, and as Belsley, Kuh, and Welsch note, exact updating formulas for 2SLS regression permitting the efficient computation of case-delection statistics were given by @Phillips1977. Phillips's formulas are used in the case-deletion statistics computed in the **lm2sls** package.
 
-Belsley, Kuh, and Welsch specifically address (in my notation) the values of $\mathrm{dfbeta}_i = b_{\mathrm{2SLS}} - b_{\mathrm{2SLS}-i}$ where $b_{\mathrm{2SLS}-i}$ is the estimated vector of regression coefficients with the $i$th case removed. They discuss as well the deleted values of the residual standard deviation $s_{-i}$. (Belsley, Kuh, and Welsch define $s$ as the residual sum of squares divided by $n$; in the **lm2sls** packages, I divide by the residual degrees of freedom, $n - p$ for the full-sample value of $s$ and $n - p - 1$ for the case-deleted values.)
+Belsley, Kuh, and Welsch specifically examine (in my notation) the values of $\mathrm{dfbeta}_i = b_{\mathrm{2SLS}} - b_{\mathrm{2SLS}-i}$ where $b_{\mathrm{2SLS}-i}$ is the estimated vector of regression coefficients with the $i$th case removed. They discuss as well the deleted values of the residual standard deviation $s_{-i}$. (Belsley, Kuh, and Welsch define $s^2$ as the residual sum of squares divided by $n$; in the **lm2sls** packages, I divide by the residual degrees of freedom, $n - p$ for the full-sample value of $s^2$ and $n - p - 1$ for the case-deleted values.)
 
 Belsley, Kuh, and Welsch then compute their summary measure of influence on the fitted values (and regression coefficients) $\mathrm{dffits}$ as
 $$
@@ -56,7 +56,21 @@ where $x_i^T$ is the $i$th row of the model matrix $X$ and (as before) $\widehat
 
 Let $H^*$ represent the $n \times n$ matrix that transforms $y$ into the fitted values, $\widehat{y} = H^* y$. In OLS regression, the analogous quantity is the hat-matrix $H$. Belsley, Kuh, and Welsch note that $H^*$, unlike $H$, is not an orthogonal-projection matrix, projecting $y$ orthogonally onto the subspace spanned by the columns of $X$. (They say that $H^*$ isn't a projection matrix, but that isn't true: It represents an oblique projection of $y$ onto the subspace spanned by the columns of $X$.) In particular, although $H^*$, like $H$, is idempotent ($H^* = H^* H^*$) and $\mathrm{trace}(H^*) = p$, $H^*$, unlike $H$, is asymmetric, and thus its diagonal elements can't be treated as summary measures of leverage, that is, as hatvalues. 
 
-Belsley, Kuh, and Welsch recommend simply using the havalues from the second-stage regression. These are the diagonal entries of $H_2 = \widehat{X}(\widehat{X}^T \widehat{X})^{-1} \widehat{X}^T$. I discuss some alternatives below.
+Belsley, Kuh, and Welsch recommend simply using the havalues from the second-stage regression. These are the diagonal entries $h_i = h_{ii}$ of $H_2 = \widehat{X}(\widehat{X}^T \widehat{X})^{-1} \widehat{X}^T$. I discuss some alternatives below.
+
+In addition to hatvalues, $\mathrm{dfbeta}$, $s_{-i}$, and $\mathrm{dffits}$, the **lm2sls** packages calculates Cook's distances $D_i$, which are essentially a slightly differently scaled version of $\mathrm{dffits}$ that uses the overall residual standard deviation $s$ in place of the deleted standard deviations $s_{-i}$: 
+$$
+D_i = \frac{s_{-i}^2}{s^2} \times \frac{\mathrm{dffits}_i^2}{p}
+$$
+
+Because they have equal variances and are approximately $t$-distributed under the normal linear model, studentized residuals are useful for detecting outliers and for addressing the assumption of normally distributed errors. The **lm2sls** package defines studentized residuals in analogy to OLS regression as
+$$
+\mathrm{rstudent}_i = \frac{e_i}{s_{-i} \sqrt{1 - h_i}}
+$$
+where $e_i = y_i - x_i^T b_{2SLS}$ is the model residual for the $i$th case.
+
+As mentioned, @BelsleyKuhWelsch1980 recommend using hatvalues from the second-stage regression. That's a reasonable choice and the default in the **lm2sls** package, but it risks missing cases that have high leverage in the first-stage but not the second-stage regression. Let $h_i^{(1)}$ represent the hatvalues from the first stage and $h_i^{(2)}$ those from the second stage. If the model includes an intercept, both sets of hatvalues are bounded by $1/n$ and $1$, but the average hatvalue in the first stage is $q/n$ while the average in the second stage is $p/n$. To make the hatvalues from the two stages comparable, I divide each by its average, $h^{(1*)}_i = \frac{h_i^{(1)}}{q/n}$ and $h^{(2*)}_i = \frac{h_i^{(2)}}{q/n}$. Then we can define the two-stages hatvalue as either as the (rescaled) larger of the two for each case, $h_i = (p/n) \times \max \left( h^{(1*)}_i, h^{(2*)}_i \right)$ or as their (rescaled) geometric mean, $h_i = (p/n) \times \sqrt{h^{(1*)}_i \times  h^{(2*)}_i}$. The **lm2sls** package provides both of these options.
+
 
 ```{r setup}
 library(lm2sls)
