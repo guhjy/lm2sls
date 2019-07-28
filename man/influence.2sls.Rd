@@ -60,6 +60,7 @@ with the following components:
 \item{\code{cookd}}{Cook's distances}
 \item{\code{hatvalues}}{hatvalues}
 \item{\code{rstudent}}{Studentized residuals}
+\item{\code{df.residual}}{residual degrees of freedom}
 }
 In the case of other methods, such as \code{rstudent.2sls} or
 \code{rstudent.influence.2sls}, the corresponding diagnostic statistics.

@@ -14,6 +14,8 @@
 \alias{update.2sls}
 \alias{bread.2sls}
 \alias{estfun.2sls}
+\alias{qqPlot.2sls}
+\alias{qqPlot.influence.2sls}
 \title{Methods for \code{"2sls"} Objects}
 \usage{
 \method{model.matrix}{2sls}(object, type = c("model", "instruments",
@@ -43,6 +45,23 @@
 \method{bread}{2sls}(x, ...)
 
 \method{estfun}{2sls}(x, ...)
+
+\method{qqPlot}{2sls}(x, xlab = paste(distribution, "Quantiles"),
+  ylab = paste("Studentized Residuals(", deparse(substitute(x)), ")", sep
+  = ""), main = NULL, distribution = c("t", "norm"),
+  line = c("robust", "quartiles", "none"), las = par("las"),
+  envelope = 0.95, col = car::carPalette()[1],
+  col.lines = car::carPalette()[2], lwd = 2, pch = 1,
+  cex = par("cex"), id = TRUE, grid = TRUE, ...)
+
+\method{qqPlot}{influence.2sls}(x, xlab = paste(distribution,
+  "Quantiles"), ylab = paste("Studentized Residuals(",
+  deparse(substitute(x)), ")", sep = ""), main = NULL,
+  distribution = c("t", "norm"), line = c("robust", "quartiles",
+  "none"), las = par("las"), envelope = 0.95,
+  col = car::carPalette()[1], col.lines = car::carPalette()[2],
+  lwd = 2, pch = 1, cex = par("cex"), id = TRUE, grid = TRUE,
+  ...)
 }
 \arguments{
 \item{object}{An object of class \code{"2sls"}.}
@@ -59,7 +78,7 @@
 
 \item{...}{to match generics, not generally used.}
 
-\item{model}{An object of class \code{"2sls"}.}
+\item{model}{An object of class \code{"2sls"} or \code{"influence.2sls"}.}
 
 \item{x}{An object of class \code{"2sls"}.}
 
@@ -83,6 +102,8 @@ if not specified, taken from the larger model.}
 
 \item{evaluate}{If \code{TRUE} (the default) evaluate the updated model;
 if \code{FALSE} simply generate the updated call.}
+
+\item{xlab, ylab, main, distribution, line, las, envelope, col, col.lines, lwd, pch, cex, id, grid}{See \code{\link[car]{qqPlot}}.}
 }
 \description{
 Various methods for processing \code{"2sls"} objects; for diagnostic methods,

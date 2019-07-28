@@ -24,6 +24,7 @@
 #' \item{\code{cookd}}{Cook's distances}
 #' \item{\code{hatvalues}}{hatvalues}
 #' \item{\code{rstudent}}{Studentized residuals}
+#' \item{\code{df.residual}}{residual degrees of freedom}
 #' }
 #' In the case of other methods, such as \code{rstudent.2sls} or
 #' \code{rstudent.influence.2sls}, the corresponding diagnostic statistics.
@@ -122,7 +123,8 @@ influence.2sls <- function(model, sigma. = n <= 1e3, type=c("stage2", "both"), .
                  dffits = naresid(na.action, dffits),
                  cookd = naresid(na.action, cookd),
                  hatvalues = naresid(na.action, hatvalues),
-                 rstudent = naresid(na.action, rstudent))
+                 rstudent = naresid(na.action, rstudent),
+                 df.residual = df.residual(model))
   class(result) <- "influence.2sls"
   result
 }

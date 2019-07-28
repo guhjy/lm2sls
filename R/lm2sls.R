@@ -278,7 +278,7 @@ model.matrix.2sls <- function(object, type=c("model", "instruments", "stage2"), 
 }
 
 #' @rdname model.matrix.2sls
-#' @param model An object of class \code{"2sls"}.
+#' @param model An object of class \code{"2sls"} or \code{"influence.2sls"}.
 #' @importFrom car avPlot
 #' @export
 avPlot.2sls <- function(model, ...){
@@ -531,5 +531,56 @@ Rsq.default <- function(model, adjusted=FALSE, ...){
   }
   else {
     1 - SSE/SST
+  }
+}
+
+#' @rdname model.matrix.2sls
+#' @importFrom car qqPlot
+#' @importFrom graphics par
+#' @export
+qqPlot.2sls <- function(x, xlab=paste(distribution, "Quantiles"),
+                         ylab=paste("Studentized Residuals(",
+                                    deparse(substitute(x)), ")", sep=""),
+                         main=NULL, distribution=c("t", "norm"),
+                         line=c("robust", "quartiles", "none"), las=par("las"),
+                         envelope=.95,col=car::carPalette()[1], col.lines=car::carPalette()[2], lwd=2, pch=1, cex=par("cex"),
+                         id=TRUE, grid=TRUE, ...){
+  distribution <- match.arg(distribution)
+  line <- match.arg(line)
+  rstudent <- rstudent(x)
+  if (distribution == "t"){
+    car::qqPlot(rstudent, xlab=xlab, ylab=ylab, main=main, distribution="t", line=line,
+           envelope=envelope, col=col, col.lines=col.lines, id=id, grid=grid, 
+           df=df.residual(x), ...)
+  } else {
+    car::qqPlot(rstudent, xlab=xlab, ylab=ylab, main=main, distribution="norm", line=line,
+           envelope=envelope, col=col, col.lines=col.lines, id=id, grid=grid, 
+           ...)
+  }
+}
+
+#' @rdname model.matrix.2sls
+#' @method qqPlot influence.2sls
+#' @param xlab,ylab,main,distribution,line,las,envelope,col,col.lines,lwd,pch,cex,id,grid See \code{\link[car]{qqPlot}}.
+#' @export
+qqPlot.influence.2sls <- function(x, xlab=paste(distribution, "Quantiles"),
+                        ylab=paste("Studentized Residuals(",
+                                   deparse(substitute(x)), ")", sep=""),
+                        main=NULL, distribution=c("t", "norm"),
+                        line=c("robust", "quartiles", "none"), las=par("las"),
+                        envelope=.95,col=car::carPalette()[1], col.lines=car::carPalette()[2], 
+                        lwd=2, pch=1, cex=par("cex"),
+                        id=TRUE, grid=TRUE, ...){
+  distribution <- match.arg(distribution)
+  line <- match.arg(line)
+  rstudent <- rstudent(x)
+  if (distribution == "t"){
+    car::qqPlot(rstudent, xlab=xlab, ylab=ylab, main=main, distribution="t", line=line,
+                envelope=envelope, col=col, col.lines=col.lines, id=id, grid=grid, 
+                df=df.residual(x), ...)
+  } else {
+    car::qqPlot(rstudent, xlab=xlab, ylab=ylab, main=main, distribution="norm", line=line,
+                envelope=envelope, col=col, col.lines=col.lines, id=id, grid=grid, 
+                ...)
   }
 }
