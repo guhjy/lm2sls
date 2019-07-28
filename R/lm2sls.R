@@ -59,6 +59,9 @@ fit2sls <- function(y, X, Z, wt=NULL, singular.ok=FALSE, qr=TRUE){
     if (!is.null(wt)) wt <- wt[-na.action]
   }
   else na.action <- NULL
+  
+  rnames <- rownames(X)
+  names(y) <- rnames
 
   # stage 1 regression
 
@@ -69,6 +72,8 @@ fit2sls <- function(y, X, Z, wt=NULL, singular.ok=FALSE, qr=TRUE){
                   " < number of stage-1 coefficients = ", ncol(Z))
     if (singular.ok) warning(msg) else stop(msg)
   }
+  residuals.1 <- stage1$residuals
+  rownames(residuals.1) <- rnames
 
   # stage 2 regression
 
@@ -81,8 +86,13 @@ fit2sls <- function(y, X, Z, wt=NULL, singular.ok=FALSE, qr=TRUE){
                   " < number of stage-2 coefficients = ", ncol(X.fit))
     if (singular.ok) warning(msg) else stop(msg)
   }
-  fitted <- X %*% stage2$coef
+  residuals.2 <- stage2$residuals
+  names(residuals.2) <- rnames
+  
+  fitted <- as.vector(X %*% stage2$coef)
+  names(fitted) <- rnames
   residuals <- y - fitted
+  names(residuals) <- rnames
   p <- ncol(X)
   n <- nrow(X)
   df.res <- n - p
@@ -103,11 +113,11 @@ fit2sls <- function(y, X, Z, wt=NULL, singular.ok=FALSE, qr=TRUE){
     vcov           = vcov,
     df.residual    = df.res,
     sigma          = sqrt(sigma2),
-    residuals      = naresid(na.action, as.vector(residuals)),
-    fitted         = napredict(na.action, as.vector(fitted)),
-    residuals.1    = naresid(na.action, stage1$residuals),
+    residuals      = naresid(na.action, residuals),
+    fitted         = napredict(na.action, fitted),
+    residuals.1    = naresid(na.action, residuals.1),
     fitted.1       = napredict(na.action, X.fit),
-    residuals.2    = naresid(na.action, stage2$residuals),
+    residuals.2    = naresid(na.action, residuals.2),
     fitted.2       = napredict(na.action, y - stage2$residuals)
   )
 }
@@ -205,6 +215,7 @@ lm2sls <- function (formula, instruments=rhs(formula), data, subset, weights,
   Z <- model.matrix(instruments, data = mf, contrasts)
   y. <- mf[, response.name]
   X <- model.matrix(formula, data = mf, contrasts)
+  names(y.) <- rownames(X)
   result <- fit2sls(y., X, Z, w, singular.ok=singular.ok, qr=qr)
   result <- c(result, list(
     response.name            = response.name,
