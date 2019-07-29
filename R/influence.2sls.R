@@ -36,17 +36,23 @@
 #' added-variable plots (\code{\link[car]{avPlots}}) and component-plus-residual
 #' plots (\code{\link[car]{crPlots}}), also work, as do effect plots
 #' (e.g., \code{\link[effects]{predictorEffects}}) with residuals (see the examples below).
+#' The pointwise confidence envelope for the \code{qqPlot} methods assumes an independent random sample
+#' from the t distribution with degrees of freedom equal to the residual degrees of
+#' freedom for the model and so are approximate, because the studentized residuals aren't
+#' independent.
 #'
 #' @importFrom stats influence
 #' @export
 #' @seealso \code{\link{lm2sls}}, \link{2SLS_Methods}, \code{\link[car]{avPlots}},
-#'   \code{\link[car]{crPlots}}, \code{\link[effects]{predictorEffects}}
+#'   \code{\link[car]{crPlots}}, \code{\link[effects]{predictorEffects}}, 
+#'   \code{\link[car]{qqPlot}}
 #' @examples
 #' kmenta.eq1 <- lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta)
 #' car::avPlots(kmenta.eq1)
 #' car::crPlots(kmenta.eq1)
 #' car::influencePlot(kmenta.eq1)
 #' car::influenceIndexPlot(kmenta.eq1)
+#' car::qqPlot(kmenta.eq1)
 #' if (require(effects)){
 #'   plot(effects::predictorEffects(kmenta.eq1, residuals=TRUE))
 #' }
@@ -205,4 +211,55 @@ cooks.distance.influence.2sls <- {
   function(model, ...) model$cookd
 }
 
+#' @rdname influence.2sls
+#' @importFrom car qqPlot
+#' @importFrom graphics par
+#' @export
+qqPlot.2sls <- function(x, xlab=paste(distribution, "Quantiles"),
+                        ylab=paste("Studentized Residuals(",
+                                   deparse(substitute(x)), ")", sep=""),
+                        main=NULL, distribution=c("t", "norm"),
+                        line=c("robust", "quartiles", "none"), las=par("las"),
+                        envelope=.95,col=car::carPalette()[1], col.lines=car::carPalette()[2], lwd=2, pch=1, cex=par("cex"),
+                        id=TRUE, grid=TRUE, ...){
+  distribution <- match.arg(distribution)
+  line <- match.arg(line)
+  rstudent <- rstudent(x)
+  if (distribution == "t"){
+    car::qqPlot(rstudent, xlab=xlab, ylab=ylab, main=main, distribution="t", line=line,
+                envelope=envelope, col=col, col.lines=col.lines, id=id, grid=grid, 
+                df=df.residual(x), ...)
+  } else {
+    car::qqPlot(rstudent, xlab=xlab, ylab=ylab, main=main, distribution="norm", line=line,
+                envelope=envelope, col=col, col.lines=col.lines, id=id, grid=grid, 
+                ...)
+  }
+}
+
+#' @rdname influence.2sls
+#' @method qqPlot influence.2sls
+#' @param x A `2sls` or `influence.2sls` object.
+#' @param xlab,ylab,main,distribution,line,las,envelope,col,col.lines,lwd,pch,cex,id,grid See \code{\link[car]{qqPlot}}.
+#' @export
+qqPlot.influence.2sls <- function(x, xlab=paste(distribution, "Quantiles"),
+                                  ylab=paste("Studentized Residuals(",
+                                             deparse(substitute(x)), ")", sep=""),
+                                  main=NULL, distribution=c("t", "norm"),
+                                  line=c("robust", "quartiles", "none"), las=par("las"),
+                                  envelope=.95,col=car::carPalette()[1], col.lines=car::carPalette()[2], 
+                                  lwd=2, pch=1, cex=par("cex"),
+                                  id=TRUE, grid=TRUE, ...){
+  distribution <- match.arg(distribution)
+  line <- match.arg(line)
+  rstudent <- rstudent(x)
+  if (distribution == "t"){
+    car::qqPlot(rstudent, xlab=xlab, ylab=ylab, main=main, distribution="t", line=line,
+                envelope=envelope, col=col, col.lines=col.lines, id=id, grid=grid, 
+                df=df.residual(x), ...)
+  } else {
+    car::qqPlot(rstudent, xlab=xlab, ylab=ylab, main=main, distribution="norm", line=line,
+                envelope=envelope, col=col, col.lines=col.lines, id=id, grid=grid, 
+                ...)
+  }
+}
 

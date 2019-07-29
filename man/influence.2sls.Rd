@@ -11,6 +11,8 @@
 \alias{rstudent.influence.2sls}
 \alias{hatvalues.influence.2sls}
 \alias{cooks.distance.influence.2sls}
+\alias{qqPlot.2sls}
+\alias{qqPlot.influence.2sls}
 \title{Deletion Diagnostic Methods for \code{"2sls"} Objects}
 \usage{
 \method{influence}{2sls}(model, sigma. = n <= 1000, type = c("stage2",
@@ -32,6 +34,23 @@
 \method{hatvalues}{influence.2sls}(model, ...)
 
 \method{cooks.distance}{influence.2sls}(model, ...)
+
+\method{qqPlot}{2sls}(x, xlab = paste(distribution, "Quantiles"),
+  ylab = paste("Studentized Residuals(", deparse(substitute(x)), ")", sep
+  = ""), main = NULL, distribution = c("t", "norm"),
+  line = c("robust", "quartiles", "none"), las = par("las"),
+  envelope = 0.95, col = car::carPalette()[1],
+  col.lines = car::carPalette()[2], lwd = 2, pch = 1,
+  cex = par("cex"), id = TRUE, grid = TRUE, ...)
+
+\method{qqPlot}{influence.2sls}(x, xlab = paste(distribution,
+  "Quantiles"), ylab = paste("Studentized Residuals(",
+  deparse(substitute(x)), ")", sep = ""), main = NULL,
+  distribution = c("t", "norm"), line = c("robust", "quartiles",
+  "none"), las = par("las"), envelope = 0.95,
+  col = car::carPalette()[1], col.lines = car::carPalette()[2],
+  lwd = 2, pch = 1, cex = par("cex"), id = TRUE, grid = TRUE,
+  ...)
 }
 \arguments{
 \item{model}{A \code{"2sls"} or \code{"influence.2sls"} object.}
@@ -49,6 +68,10 @@ stage regression/number of cases); the geometric mean or casewise maximum values
 multiplied by the average hatvalue from the second stage.}
 
 \item{...}{Not used.}
+
+\item{x}{A `2sls` or `influence.2sls` object.}
+
+\item{xlab, ylab, main, distribution, line, las, envelope, col, col.lines, lwd, pch, cex, id, grid}{See \code{\link[car]{qqPlot}}.}
 }
 \value{
 In the case of \code{influence.2sls}, an object of class \code{"influence.2sls"}
@@ -73,6 +96,10 @@ method and then to extract the various specific diagnostics with the methods for
 added-variable plots (\code{\link[car]{avPlots}}) and component-plus-residual
 plots (\code{\link[car]{crPlots}}), also work, as do effect plots
 (e.g., \code{\link[effects]{predictorEffects}}) with residuals (see the examples below).
+The pointwise confidence envelope for the \code{qqPlot} methods assumes an independent random sample
+from the t distribution with degrees of freedom equal to the residual degrees of
+freedom for the model and so are approximate, because the studentized residuals aren't
+independent.
 }
 \examples{
 kmenta.eq1 <- lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta)
@@ -80,11 +107,13 @@ car::avPlots(kmenta.eq1)
 car::crPlots(kmenta.eq1)
 car::influencePlot(kmenta.eq1)
 car::influenceIndexPlot(kmenta.eq1)
+car::qqPlot(kmenta.eq1)
 if (require(effects)){
   plot(effects::predictorEffects(kmenta.eq1, residuals=TRUE))
 }
 }
 \seealso{
 \code{\link{lm2sls}}, \link{2SLS_Methods}, \code{\link[car]{avPlots}},
-  \code{\link[car]{crPlots}}, \code{\link[effects]{predictorEffects}}
+  \code{\link[car]{crPlots}}, \code{\link[effects]{predictorEffects}}, 
+  \code{\link[car]{qqPlot}}
 }
