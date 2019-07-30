@@ -40,13 +40,13 @@ As an alternative, we can obtain exactly the same estimates $b_{\mathrm{2SLS}}$ 
 
 Whether we think of the second stage as IV estimation or OLS regression, we can combine the two stages into a single formula [see, e.g., @Fox1979]. This is what the `tsls()` function in the **sem** package does, but from the point of view of developing regression diagnostics, it's advantageous to compute the 2SLS estimator by two distinct OLS regressions. This is coincidentally also the approach taken by `ivreg()` in the **AER** package.
 
-## Case-Deletion Diagnostics for 2SLS Regression
+## Unusual-Data Diagnostics for 2SLS Regression
 
 As far as I can tell, diagnostics for regression models fit by 2SLS is a relatively neglected topic, but it was addressed briefly by @BelsleyKuhWelsch1980 [pp. 266--268]. Deletion diagnostics directly assess the influence of each case on a fitted regression model by removing the case, refitting the model, and noting how the regression coefficients or other regression outputs, such as the residual standard deviation, change. 
 
-Case-deletion diagnostics can always be obtained by brute-force computation, literally refitting the model with each case removed in turn, but this approach is inefficient and consequently unattractive in large samples. For some classes of statistical models, such as generalized linear models [e.g., @Pregibon1981], computationally less demanding approximations to case-deletion diagnostics are available, and for linear models efficient updating formulas are available (as described, e.g., by Belseley, Kuh, and Welsch) that permit the exact computation of case-deletion diagnostics. As it turns out, and as Belsley, Kuh, and Welsch note, exact updating formulas for 2SLS regression permitting the efficient computation of case-delection statistics were given by @Phillips1977. Phillips's formulas are used in the case-deletion statistics computed in the **lm2sls** package.
+Case-deletion diagnostics for influential data can always be obtained by brute-force computation, literally refitting the model with each case removed in turn, but this approach is inefficient and consequently unattractive in large samples. For some classes of statistical models, such as generalized linear models [e.g., @Pregibon1981], computationally less demanding approximations to case-deletion diagnostics are available, and for linear models efficient "updating" formulas are available [as described, e.g., by @BelsleyKuhWelsch1980] that permit the exact computation of case-deletion diagnostics. As it turns out, and as Belsley, Kuh, and Welsch note, exact updating formulas for 2SLS regression permitting the efficient computation of case-delection statistics were given by @Phillips1977. Phillips's formulas are used in the case-deletion statistics computed in the **lm2sls** package.
 
-Belsley, Kuh, and Welsch specifically examine (in my notation) the values of $\mathrm{dfbeta}_i = b_{\mathrm{2SLS}} - b_{\mathrm{2SLS}-i}$ where $b_{\mathrm{2SLS}-i}$ is the estimated vector of regression coefficients with the $i$th case removed. They discuss as well the deleted values of the residual standard deviation $s_{-i}$. (Belsley, Kuh, and Welsch define $s^2$ as the residual sum of squares divided by $n$; in the **lm2sls** packages, I divide by the residual degrees of freedom, $n - p$ for the full-sample value of $s^2$ and $n - p - 1$ for the case-deleted values.)
+Belsley, Kuh, and Welsch specifically examine (in my notation) the values of $\mathrm{dfbeta}_i = b_{\mathrm{2SLS}} - b_{\mathrm{2SLS}-i}$ where $b_{\mathrm{2SLS}-i}$ is the 2SLS vector of regression coefficients with the $i$th case removed. They discuss as well the deleted values of the residual standard deviation $s_{-i}$. (Belsley, Kuh, and Welsch define $s^2$ and $s_{-i}$ respectively as the full-sample and deleted residual sums of squares divided by $n$; in the **lm2sls** packages, I divide by the residual degrees of freedom, $n - p$ for the full-sample value of $s^2$ and $n - p - 1$ for the case-deleted values.)
 
 Belsley, Kuh, and Welsch then compute their summary measure of influence on the fitted values (and regression coefficients) $\mathrm{dffits}$ as
 $$
@@ -54,7 +54,7 @@ $$
 $$
 where $x_i^T$ is the $i$th row of the model matrix $X$ and (as before) $\widehat{X}$ is the model matrix of second-stage regressors.
 
-Let $H^*$ represent the $n \times n$ matrix that transforms $y$ into the fitted values, $\widehat{y} = H^* y$. In OLS regression, the analogous quantity is the hat-matrix $H$. Belsley, Kuh, and Welsch note that $H^*$, unlike $H$, is not an orthogonal-projection matrix, projecting $y$ orthogonally onto the subspace spanned by the columns of $X$. (They say that $H^*$ isn't a projection matrix, but that isn't true: It represents an oblique projection of $y$ onto the subspace spanned by the columns of $X$.) In particular, although $H^*$, like $H$, is idempotent ($H^* = H^* H^*$) and $\mathrm{trace}(H^*) = p$, $H^*$, unlike $H$, is asymmetric, and thus its diagonal elements can't be treated as summary measures of leverage, that is, as hatvalues. 
+Let $H^*$ represent the $n \times n$ matrix that transforms $y$ into the fitted values, $\widehat{y} = H^* y$. In OLS regression, the analogous quantity is the hat-matrix $H = X(X^T X)^{-1}X^T$. Belsley, Kuh, and Welsch note that $H^*$, unlike $H$, is not an orthogonal-projection matrix, projecting $y$ orthogonally onto the subspace spanned by the columns of $X$. (They say that $H^*$ isn't a projection matrix, but that isn't true: It represents an oblique projection of $y$ onto the subspace spanned by the columns of $X$.) In particular, although $H^*$, like $H$, is idempotent ($H^* = H^* H^*$) and $\mathrm{trace}(H^*) = p$, $H^*$, unlike $H$, is asymmetric, and thus its diagonal elements can't be treated as summary measures of leverage, that is, as hatvalues. 
 
 Belsley, Kuh, and Welsch recommend simply using the havalues from the second-stage regression. These are the diagonal entries $h_i = h_{ii}$ of $H_2 = \widehat{X}(\widehat{X}^T \widehat{X})^{-1} \widehat{X}^T$. I discuss some alternatives below.
 
@@ -69,12 +69,89 @@ $$
 $$
 where $e_i = y_i - x_i^T b_{2SLS}$ is the model residual for the $i$th case.
 
-As mentioned, @BelsleyKuhWelsch1980 recommend using hatvalues from the second-stage regression. That's a reasonable choice and the default in the **lm2sls** package, but it risks missing cases that have high leverage in the first-stage but not the second-stage regression. Let $h_i^{(1)}$ represent the hatvalues from the first stage and $h_i^{(2)}$ those from the second stage. If the model includes an intercept, both sets of hatvalues are bounded by $1/n$ and $1$, but the average hatvalue in the first stage is $q/n$ while the average in the second stage is $p/n$. To make the hatvalues from the two stages comparable, I divide each by its average, $h^{(1*)}_i = \frac{h_i^{(1)}}{q/n}$ and $h^{(2*)}_i = \frac{h_i^{(2)}}{q/n}$. Then we can define the two-stages hatvalue as either as the (rescaled) larger of the two for each case, $h_i = (p/n) \times \max \left( h^{(1*)}_i, h^{(2*)}_i \right)$ or as their (rescaled) geometric mean, $h_i = (p/n) \times \sqrt{h^{(1*)}_i \times  h^{(2*)}_i}$. The **lm2sls** package provides both of these options.
+As mentioned, @BelsleyKuhWelsch1980 recommend using hatvalues from the second-stage regression. That's a reasonable choice and the default in the **lm2sls** package, but it risks missing cases that have high leverage in the first-stage but not the second-stage regression. Let $h_i^{(1)}$ represent the hatvalues from the first stage and $h_i^{(2)}$ those from the second stage. If the model includes an intercept, both sets of hatvalues are bounded by $1/n$ and $1$, but the average hatvalue in the first stage is $q/n$ while the average in the second stage is $p/n$. To make the hatvalues from the two stages comparable, I divide each by its average, $h^{(1*)}_i = \frac{h_i^{(1)}}{q/n}$ and $h^{(2*)}_i = \frac{h_i^{(2)}}{q/n}$. Then we can define the two-stages hatvalue either as the (rescaled) larger of the two for each case, $h_i = (p/n) \times \max \left( h^{(1*)}_i, h^{(2*)}_i \right)$, or as their (rescaled) geometric mean, $h_i = (p/n) \times \sqrt{h^{(1*)}_i \times  h^{(2*)}_i}$. The **lm2sls** package provides both of these options.
 
+### Unusual-Data Diagnosics in the **lm2sls** Package
 
-```{r setup}
+The **lm2sls** package implements unusual-data diagnostics for 2SLS regression (i.e., class `"2sls"` objects produced by `lm2sls()`) as methods for various generic functions in the **stats** and **car** packages; these methods include `cooks.distance`, `dfbeta`, `hatvalues`, `influence`, and `rstudent` in **stats**, and `avPlot` and `qqPlot`` in **car**. In particular, `influence.2sls()` returns an object containing several diagnostic statistics, and it is more efficient to use the `influence()` function rather than to compute the various diagnostics separately. Methods provided for class `"influence.2sls"` objects include `cooks.distance`, `dfbeta`, `hatvalues`, `qqPlot`, and `rstudent`.
+
+The package also provides methods for various standard R regression-model generics, including `anova()` (for model comparison), `fitted()` (for computing fitted values for the model or for the first- or second-stage regression), `model.matrix()` (again, for the model or for the first- or second-stage regression), `print()`, `residuals()` (of several kinds), `summary()`, `update()`, and `vcov()`. The `summary()` method makes provision for a user-specified coefficient covariance matrix or for a function to compute the coefficient covariance matrix, such as `sandwich()` in the **sandwich** package, to compute robust coefficient covariances. The latter is supported by methods for the `bread()` and `estfun()` generics defined in **sandwich**.
+
+### Unusual Data Diagnostics: An Example
+
+The **lm2sls** package contains the `Kmenta` data set, used in @Kmenta1986 to illustrate 2SLS estimation of a linear simultaneous equation econometric model. The data, which are partly contrived, represent an annual time series for the U.S., with the following variables:
+
+* `Q`, food consumption per capita
+* `P`, ratio of food prices to general consumer prices
+* `D`, disposible income in constant dollars
+* `F`, ratio of preceding year's prices received by famers to general consumer prices
+* `A`, time in years
+
+Kmenta estimates the following two-equation model, with the first equation representing demand and the second supply:
+\begin{align}
+Q &= \beta_{10} + \beta_{11} P + \beta_{12} D + \varepsilon_1 \\
+Q &= \beta_{20} + \beta_{21} P + \beta_{22} F + \beta_{23} A + \varepsilon_2
+\end{align}
+The variables $D$, $F$, and $A$ are taken as exogenous, as of course is the constant regressor (a columns of $1$s), and $P$ in both structural equations is an endogenous explanatory variable. Because there are four instrumental variables available, the first structural equation, which has three coefficients, is over-identified, while the second structural equation, with four coefficients, is just-identified.
+
+The structural equation may be estimated as follows:
+```{r}
 library(lm2sls)
+deq <- lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta)     # demand equation
+summary(deq)
+```
+```{r}
+seq <- lm2sls(Q ~ P + F + A, ~ D + F + A, data=Kmenta) # supply equation
+summary(seq)
 ```
 
+As I mentioned, the `Kmenta` data are partly contrived, and so it's probably not surprising that they're well behaved. For example, a QQ plot of studentized residuals and an "influence plot" of hatvalues, studentized residuals, and Cook's distances for the first structural equation are both unremarkable, except for a couple of high-leverage but in-line cases:
+```{r}
+library(car) # for diagnostic generic functions
+qqPlot(deq)
+```
+```{r}
+influencePlot(deq)
+```
+The circles in the influence plot have areas proportional to Cook's D, the horizontal lines are drawn at $\pm 2$ on the studentized residuals scale, and the vertical lines are $2 \times \bar{h}$ and $3 \times \bar{h}$. I invite the reader to repeat these graphs, and the example below, for the second structural equation.
+
+To generate a more interesting example, I'll change the value of $Q$ for the high-leverage 20th case from $Q_{20} = 106.232$ to $Q_{20} = 95$, a value that's well within the range of $Q$ in the data but out of line with the rest of the data:
+```{r}
+Kmenta1 <- Kmenta
+Kmenta1[20, "Q"] <- 95
+```
+Then repeating the 2SLS fit for the first structural equation and comparing the results to those for the uncorrupted data reveals substantial change in the regression coefficients:
+```{r}
+deq1 <- update(deq, data=Kmenta1)
+compareCoefs(deq, deq1)
+```
+The problematic 20th case is clearly revealed by unusual-data regression diagnostics:
+```{r}
+qqPlot(deq1)
+```
+```{r}
+outlierTest(deq1)
+```
+```{r}
+influencePlot(deq1)
+```
+```{r}
+avPlots(deq1)
+```
+
+Removing the 20th case produces estimated coefficients close to those for the uncorrupted data:
+```{r}
+deq1.20 <- update(deq1, subset = -20)
+compareCoefs(deq, deq1, deq1.20)
+```
+The standard errors of the estimated coefficients are larger than they were originally because we now have 19 rather than 20 cases and because the variation of the explanatory variables is reduced.
+
+Finally, let's verify that the deletion diagnostics are correctly computed:
+```{r}
+cbind(dfbeta(deq1)[20, ], coef(deq1) - coef(deq1.20))
+```
+```{r}
+c(influence(deq1)$sigma[20], sigma(deq1.20))
+```
 
 ## References
