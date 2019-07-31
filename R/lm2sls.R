@@ -368,7 +368,7 @@ summary.2sls <- function (object, digits = getOption("digits") - 2, vcov.=vcov, 
   pval <- pf(F, length(b), df, lower.tail=FALSE)
   result <- list(call=object$call,
                  residuals = summary(residuals(object)),
-                 coefficients = table, digits = digits, s = object$s,
+                 coefficients = table, digits = digits, sigma = object$s,
                  df = df, dfn=length(b), na.action=object$na.action, r2=Rsq(object),
                  r2adj=Rsq(object, adjust=TRUE), F=F, pval=pval)
   class(result) <- "summary.2sls"
@@ -387,7 +387,7 @@ print.summary.2sls <- function (x, ...) {
   print(round(x$residuals, digits))
   cat("\nCoefficients:\n")
   printCoefmat(x$coefficients, digits = digits)
-  cat("\nResidual standard deviation =", round(x$s, digits),
+  cat("\nResidual standard deviation =", round(x$sigma, digits),
             "on", x$df, "degrees of freedom")
   cat("\nR-squared analog =", paste0(format(x$r2, digits=digits),
                                      ",  Adjusted R-squared ="),
