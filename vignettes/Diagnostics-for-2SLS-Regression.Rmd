@@ -146,6 +146,15 @@ compareCoefs(deq, deq1, deq1.20)
 ```
 The standard errors of the estimated coefficients are larger than they were originally because we now have 19 rather than 20 cases and because the variation of the explanatory variables is reduced.
 
+It's of some interest to discover whether the three definitions of hatvaues make a practical difference to this example. A scatterplot matrix for the three kinds of hatvalues suggests that they all produce similar results:
+```{r}
+H <- cbind(hatvalues(deq1), hatvalues(deq1, type="both"), 
+           hatvalues(deq1, type="maximum"))
+colnames(H) <- c("stage2", "geom.mean", "maximum")
+head(H)
+scatterplotMatrix(H)
+```
+
 Finally, let's verify that the deletion diagnostics are correctly computed:
 ```{r}
 cbind(dfbeta(deq1)[20, ], coef(deq1) - coef(deq1.20))
@@ -153,5 +162,41 @@ cbind(dfbeta(deq1)[20, ], coef(deq1) - coef(deq1.20))
 ```{r}
 c(influence(deq1)$sigma[20], sigma(deq1.20))
 ```
+
+## Nonlinearity Diagnostics
+
+The theoretical properties of component-plus-residual plots as nonlinearity diagnostics were systematically explored by @Cook1993 and @CookCroosDabrera1998. Following these authors and focusing on the explanatory variable $x_1$, let's assume that the partial relationship of the response $y$ to $x_1$ is potentially nonlinear, as represented by the partial regression function $f(x_1)$, and that the partial relationships of $y$ to the other $x$s are linear, so that an accurate model for the data is:
+$$
+E(y) = \alpha + f(x_1) + \beta_2 x_2 + \cdots + \beta_k x_k 
+$$
+
+We don't know $f()$ and so instead fit the *working model*
+$$
+E(y) = \alpha^\prime + \beta_1^\prime x_1 + \beta_2^\prime x_2 + \cdots + \beta_k^\prime x_k 
+$$
+in our case by 2SLS regression, obtaining estimated regression coefficients $a, b_1, b_2, \ldots, b_k$. Cook and his Croos-Dabrera's work shows that as long as the regression estimator is consistant and the $x$s are linearly related, the partial residuals $b_1 x_1 + e$ can be plotted and smoothed against $x_1$ to visualize an estimate of $f()$, where $e = y -(a + b_1 x_1 + b_2 x_2 + \cdots b_k x_k)$ are the model residuals. In practice, the component-plus-residual plot can break down as an accurate representation of $f()$ if there are strong nonlinear relationships between $x_1$ and the other $x$s or if $y$ is nonlinearly related to another $x$ that is correlated with $x_1$.
+
+@FoxWeisberg2018 extend component-plus-residual plots to more complex regression models, which can, for example, include interactions, by adding partial residuals to predictor effect plots. These graphs also can be applied to linear models fit by 2SLS regression.
+
+### Diagnosing Nonlinearity: An Example
+
+I turn once more to the demand equation for Kmenta's data and model to illustrate component-plus-residual plots, and once more the data are well behaved. `"2sls"` objects inherit the `"lm"` class, and the `"lm"` method for the `crPlot()` function in the **car** package works with these objects. In particular, `crPlots()` constructs component-plus-residual plots for all of the numeric explanatory variables in an additive regression equation. For example,
+```{r}
+crPlots(deq, smooth=list(span=1))
+```
+
+I set a large span for the loess smoother in the plot because there are only $n = 20$ cases in the `Kmenta` data set. The default value of the span is $2/3$. In each panel, the loess smooth, given by the magenta line, closely matches the least-squares line, given by the broken blue line, which represents the fitted regression plane viewed edge-on in the direction of the focal explanatory variable, $P$ on the left and $D$ on the right. Both partial relationships therefore appear to be linear.
+
+`crPlots()` works only for additive models; the `predictorEffects()` function in the **effects** package plots partial residuals for more complex models. In the current example, which is an additive model, we get essentially the same graphs as before, except for the scaling of the $y$ axis:
+```{r}
+library(effects)
+plot(predictorEffects(deq, residuals=TRUE), 
+     partial.residuals=list(span=1))
+```
+
+
+## Nonconstant Error Variance
+
+## Other Diagnostics
 
 ## References
