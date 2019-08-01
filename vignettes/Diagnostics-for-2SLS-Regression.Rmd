@@ -194,8 +194,57 @@ plot(predictorEffects(deq, residuals=TRUE),
      partial.residuals=list(span=1))
 ```
 
-
 ## Nonconstant Error Variance
+
+Standard least-squares nonconstant variance ("heteroscedasticity") diagnostics extend straightforwardly to 2SLS regression. We can, for example, plot studentized residuals versus fitted values to discern a tendency for the variability of the former to change (typically to increase) with the level of the latter. For the demand equation in Kmenta's model,
+```{r}
+plot(fitted(deq), rstudent(deq))
+abline(h=0)
+```
+
+which seems unproblematic.
+
+A variation of this graph, suggested by @Fox2016, adapts Tukey's spread-level plot [@Tukey1977] to graph the log of the absolute studentized residuals versus the log of the fitted values, assuming that the latter are positive. If a line fit to the plot has slope $b$, then a variance-stablilizing power transformation is given by $y^{1 - b}$. Thus if $b > 0$, the suggested transformation is *down* Tukey's ladder of powers and roots, with, for example, $1 - b = 1/2$ representing the square-root transformation, $1 - b = 0$ the log transformation, and so on. For Kmenta's model, we have
+```{r}
+spreadLevelPlot(deq, smooth=list(span=1))
+```
+
+The graph has only a slight positive tilt, but the suggested transformation $1 - b = - 2.45$ seems strong, until we notice that the values of $Q$ are far from 0, and that the ratio of the largest to smallest values $Q_{\mathrm{max}}/Q_{\mathrm{min}} = 106.23/92.42 = 1.15$ is close to 1, so that $Q^{-2.45}$ is nearly a linear transformation of $Q$:
+```{r}
+with(Kmenta, plot(Q, Q^2.5))
+abline(lm(Q^2.5 ~ Q, data=Kmenta))
+```
+
+A common score test for nonconstant error variance in least-squares regression, suggested by @BreuschPagan1979, is based on the model 
+$$
+V(\varepsilon) = g(\gamma_0 + \gamma_1 z_1 + \cdots + \gamma_s z_s) 
+$$
+where the function $g()$ is unspecified and the variables $z_1, \ldots, z_s$ are predictors of the error variance. In the most common application, independently proposed by @CookWeisberg1983, there is one $z$, the fitted values $\widehat{y}$ from the regression, although it is also common to use the regressors $x$ from the primary regression as $z$s. The test is implemented by regressing the squared standardized residuals $e_i^2/\widehat{\sigma}^2$ on the $z$s, where $\widehat{\sigma}^2 = \sum e_i^2/n$. The residual sum of squares for this auxiliary regression divided by 2 is then asymptotically distributed as $\chi^2_s$ under the null hypothesis of constant error variance.
+
+The Breusch-Pagan/Weisberg test is easily adaptable to 2SLS regression, as implemented by the `ncvTest()` function in the **car** package. For Kmenta's demand equation:
+```{r}
+ncvTest(deq)
+ncvTest(deq, var = ~ P + D)
+```
+Here, the first test is against the fitted values and the second against the explanatory variables in the demand equation; the $p$-values for both tests are large, suggesting little evidence against the hypothesis of constant variance.
+
+Remedies for nonconstant variance in 2SLS regression are similar to those in least-squares regression. 
+
+* I've already suggested that if the error variance increases (or decreases) with the level of the response, and if the response is positive, then we might be able to stabilize the error variance by power-transforming the response. 
+* If, alternatively, we know the variance of the errors up to a constant of proportionality, then we can use invariance-variance weights for the 2SLS estimator. 
+
+* Finally, we can employ a "sandwich" estimator of the coefficient covariance matrix in 2SLS to correct standard errors for nonconstant error variance, much as in least-squares regression as proposed by @Huber1967 and @White1980 [also see @LongErvin2000]. 
+
+The **lm2sls** package supports the `sandwich()` function in the **sandwich** package. For the Kmenta example, where evidence of nonconstant error variance is slight, the sandwich standard errors are similar to, indeed slightly smaller than, the conventional 2SLS standard errors:
+```{r}
+summary(deq, vcov=sandwich::sandwich)
+SEs <- round(cbind(sqrt(diag(sandwich::sandwich(deq))), 
+                   sqrt(diag(vcov(deq)))), 
+             4)
+colnames(SEs) <- c("sandwich", "conventional")
+SEs
+```
+
 
 ## Other Diagnostics
 
