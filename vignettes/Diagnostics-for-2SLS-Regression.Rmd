@@ -79,7 +79,7 @@ The package also provides methods for various standard R regression-model generi
 
 ### Unusual Data Diagnostics: An Example
 
-The **lm2sls** package contains the `Kmenta` data set, used in @Kmenta1986 to illustrate 2SLS estimation of a linear simultaneous equation econometric model. The data, which are partly contrived, represent an annual time series for the U.S., with the following variables:
+The **lm2sls** package contains the `Kmenta` data set, used in @Kmenta1986 to illustrate  estimation (by 2SLS and other methods) of a linear simultaneous equation econometric model. The data, which are partly contrived, represent an annual time series for the U.S. economy from 1922 to 1941, with the following variables:
 
 * `Q`, food consumption per capita
 * `P`, ratio of food prices to general consumer prices
@@ -87,16 +87,22 @@ The **lm2sls** package contains the `Kmenta` data set, used in @Kmenta1986 to il
 * `F`, ratio of preceding year's prices received by famers to general consumer prices
 * `A`, time in years
 
+The data set is small and so we can examine it in its entirety:
+```{r}
+library(lm2sls)
+Kmenta
+```
+
+
 Kmenta estimates the following two-equation model, with the first equation representing demand and the second supply:
 \begin{align}
 Q &= \beta_{10} + \beta_{11} P + \beta_{12} D + \varepsilon_1 \\
 Q &= \beta_{20} + \beta_{21} P + \beta_{22} F + \beta_{23} A + \varepsilon_2
 \end{align}
-The variables $D$, $F$, and $A$ are taken as exogenous, as of course is the constant regressor (a columns of $1$s), and $P$ in both structural equations is an endogenous explanatory variable. Because there are four instrumental variables available, the first structural equation, which has three coefficients, is over-identified, while the second structural equation, with four coefficients, is just-identified.
+The variables $D$, $F$, and $A$ are taken as exogenous, as of course is the constant regressor (a columns of $1$s), and $P$ in both structural equations is an endogenous explanatory variable. Because there are four instrumental variables available, the first structural equation, which has three coefficients, is over-identified, while the second structural equation, with four coefficients, is just-identified. The values of the exogenous variable are real, while those of the endogenous variables are simulated according to this model, with assumed values of the parameters.
 
-The structural equation may be estimated as follows:
+The structural equations may be estimated as follows:
 ```{r}
-library(lm2sls)
 deq <- lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta)     # demand equation
 summary(deq)
 ```
@@ -105,7 +111,7 @@ seq <- lm2sls(Q ~ P + F + A, ~ D + F + A, data=Kmenta) # supply equation
 summary(seq)
 ```
 
-As I mentioned, the `Kmenta` data are partly contrived, and so it's probably not surprising that they're well behaved. For example, a QQ plot of studentized residuals and an "influence plot" of hatvalues, studentized residuals, and Cook's distances for the first structural equation are both unremarkable, except for a couple of high-leverage but in-line cases:
+As I mentioned, the `Kmenta` data are partly contrived by simulating the model that I fit, and so it's probably not surprising that they're well behaved. For example, a QQ plot of studentized residuals and an "influence plot" of hatvalues, studentized residuals, and Cook's distances for the first structural equation are both unremarkable, except for a couple of high-leverage but in-line cases:
 ```{r}
 library(car) # for diagnostic generic functions
 qqPlot(deq)
