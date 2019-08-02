@@ -1,7 +1,7 @@
 ---
 title: "Diagnostics for 2SLS Regression"
 author: "John Fox"
-date: "2019-07-26"
+date: "2019-08-02"
 bibliography: Diagnostics-for-2SLS-Regression.bib
 biblio-style: "apalike"
 output: rmarkdown::html_vignette
@@ -11,11 +11,8 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment=NA, prompt=TRUE, fig.height=4, fig.width=4)
 ```
 
 ## Introduction
@@ -73,7 +70,7 @@ As mentioned, @BelsleyKuhWelsch1980 recommend using hatvalues from the second-st
 
 ### Unusual-Data Diagnosics in the **lm2sls** Package
 
-The **lm2sls** package implements unusual-data diagnostics for 2SLS regression (i.e., class `"2sls"` objects produced by `lm2sls()`) as methods for various generic functions in the **stats** and **car** packages; these methods include `cooks.distance`, `dfbeta`, `hatvalues`, `influence`, and `rstudent` in **stats**, and `avPlot` and `qqPlot`` in **car**. In particular, `influence.2sls()` returns an object containing several diagnostic statistics, and it is more efficient to use the `influence()` function rather than to compute the various diagnostics separately. Methods provided for class `"influence.2sls"` objects include `cooks.distance`, `dfbeta`, `hatvalues`, `qqPlot`, and `rstudent`.
+The **lm2sls** package implements unusual-data diagnostics for 2SLS regression (i.e., class `"2sls"` objects produced by `lm2sls()`) as methods for various generic functions in the **stats** and **car** packages; these functions include `cooks.distance()`, `dfbeta()`, `hatvalue()s`, `influence()`, and `rstudent()` in **stats**, and `avPlot()` and `qqPlot()` in **car**. In particular, `influence.2sls()` returns an object containing several diagnostic statistics, and it is more efficient to use the `influence()` function rather than to compute the various diagnostics separately. Methods provided for class `"influence.2sls"` objects include `cooks.distance()`, `dfbeta()`, `hatvalues()`, `qqPlot()`, and `rstudent()`.
 
 The package also provides methods for various standard R regression-model generics, including `anova()` (for model comparison), `fitted()` (for computing fitted values for the model or for the first- or second-stage regression), `model.matrix()` (again, for the model or for the first- or second-stage regression), `print()`, `residuals()` (of several kinds), `summary()`, `update()`, and `vcov()`. The `summary()` method makes provision for a user-specified coefficient covariance matrix or for a function to compute the coefficient covariance matrix, such as `sandwich()` in the **sandwich** package, to compute robust coefficient covariances. The latter is supported by methods for the `bread()` and `estfun()` generics defined in **sandwich**.
 
@@ -111,6 +108,13 @@ seq <- lm2sls(Q ~ P + F + A, ~ D + F + A, data=Kmenta) # supply equation
 summary(seq)
 ```
 
+`"2sls"` objects inherit from class `"lm"`, and many methods for `"lm"` objects work properly for `"2sls"` objects. For example, the `plot()` method for `"lm"` objects produces interpretable plots, here for the 2SLS fit for the demand equation in Kmenta's model:
+```{r fig.height=8, fig.width=8}
+par(mfrow=c(2, 2))
+plot(deq)
+```
+I prefer, however, the versions of these diagnostic graphs described below, in this and subsequent sections.
+
 As I mentioned, the `Kmenta` data are partly contrived by simulating the model that I fit, and so it's probably not surprising that they're well behaved. For example, a QQ plot of studentized residuals and an "influence plot" of hatvalues, studentized residuals, and Cook's distances for the first structural equation are both unremarkable, except for a couple of high-leverage but in-line cases:
 ```{r}
 library(car) # for diagnostic generic functions
@@ -141,7 +145,7 @@ outlierTest(deq1)
 ```{r}
 influencePlot(deq1)
 ```
-```{r}
+```{r fig.height=4, fig.width=8}
 avPlots(deq1)
 ```
 
@@ -153,7 +157,7 @@ compareCoefs(deq, deq1, deq1.20)
 The standard errors of the estimated coefficients are larger than they were originally because we now have 19 rather than 20 cases and because the variation of the explanatory variables is reduced.
 
 It's of some interest to discover whether the three definitions of hatvaues make a practical difference to this example. A scatterplot matrix for the three kinds of hatvalues suggests that they all produce similar results:
-```{r}
+```{r fig.height=6, fig.width=6}
 H <- cbind(hatvalues(deq1), hatvalues(deq1, type="both"), 
            hatvalues(deq1, type="maximum"))
 colnames(H) <- c("stage2", "geom.mean", "maximum")
@@ -187,18 +191,26 @@ in our case by 2SLS regression, obtaining estimated regression coefficients $a, 
 ### Diagnosing Nonlinearity: An Example
 
 I turn once more to the demand equation for Kmenta's data and model to illustrate component-plus-residual plots, and once more the data are well behaved. `"2sls"` objects inherit the `"lm"` class, and the `"lm"` method for the `crPlot()` function in the **car** package works with these objects. In particular, `crPlots()` constructs component-plus-residual plots for all of the numeric explanatory variables in an additive regression equation. For example,
-```{r}
+```{r fig.height=4, fig.width=8}
 crPlots(deq, smooth=list(span=1))
 ```
 
 I set a large span for the loess smoother in the plot because there are only $n = 20$ cases in the `Kmenta` data set. The default value of the span is $2/3$. In each panel, the loess smooth, given by the magenta line, closely matches the least-squares line, given by the broken blue line, which represents the fitted regression plane viewed edge-on in the direction of the focal explanatory variable, $P$ on the left and $D$ on the right. Both partial relationships therefore appear to be linear.
 
 `crPlots()` works only for additive models; the `predictorEffects()` function in the **effects** package plots partial residuals for more complex models. In the current example, which is an additive model, we get essentially the same graphs as before, except for the scaling of the $y$ axis:
-```{r}
+```{r fig.height=4, fig.width=8}
 library(effects)
 plot(predictorEffects(deq, residuals=TRUE), 
      partial.residuals=list(span=1))
 ```
+
+Suppose, however, that we fit the wrong model to the data:
+```{r fig.height=4, fig.width=8}
+deq2 <- update(deq, . ~ I((P - 85)^4/10^5) + D)
+crPlots(deq2, smooth=list(span=1))
+```
+
+Because the ratio $\max(P)/\min(P) = 113.49/86.50 = 1.3$ is not much larger than 1, I subtracted a number slightly smaller than $\min(P)$ from $P$ prior to raising the variable to the 4th power to induce substantial nonlinearity into the fitted regression curve. The resulting component-plus-residual plot for $P$ clearly reflects the resulting lack of fit, while the plot for $D$ is still reasonably linear.
 
 ## Nonconstant Error Variance
 
@@ -210,12 +222,11 @@ abline(h=0)
 
 which seems unproblematic.
 
-A variation of this graph, suggested by @Fox2016, adapts Tukey's spread-level plot [@Tukey1977] to graph the log of the absolute studentized residuals versus the log of the fitted values, assuming that the latter are positive. If a line fit to the plot has slope $b$, then a variance-stablilizing power transformation is given by $y^{1 - b}$. Thus if $b > 0$, the suggested transformation is *down* Tukey's ladder of powers and roots, with, for example, $1 - b = 1/2$ representing the square-root transformation, $1 - b = 0$ the log transformation, and so on. For Kmenta's model, we have
+A variation of this graph, suggested by @Fox2016, adapts Tukey's spread-level plot [@Tukey1977] to graph the log of the absolute studentized residuals versus the log of the fitted values, assuming that the latter are positive. If a line fit to the plot has slope $b$, then a variance-stablilizing power transformation is given by $Y^\lambda = y^{1 - b}$. Thus if $b > 0$, the suggested transformation is *down* Tukey's ladder of powers and roots, with, for example, $\lambda = 1 - b = 1/2$ representing the square-root transformation, $\lambda = 1 - b = 0$ the log transformation, and so on. For Kmenta's model, we have
 ```{r}
 spreadLevelPlot(deq, smooth=list(span=1))
 ```
-
-The graph has only a slight positive tilt, but the suggested transformation $1 - b = - 2.45$ seems strong, until we notice that the values of $Q$ are far from 0, and that the ratio of the largest to smallest values $Q_{\mathrm{max}}/Q_{\mathrm{min}} = 106.23/92.42 = 1.15$ is close to 1, so that $Q^{-2.45}$ is nearly a linear transformation of $Q$:
+$\lambda = - 2.45$ seems strong, until we notice that the values of $Q$ are far from 0, and that the ratio of the largest to smallest values $Q_{\mathrm{max}}/Q_{\mathrm{min}} = 106.23/92.42 = 1.15$ is close to 1, so that $Q^{-2.45}$ is nearly a linear transformation of $Q$:
 ```{r}
 with(Kmenta, plot(Q, Q^2.5))
 abline(lm(Q^2.5 ~ Q, data=Kmenta))
@@ -251,6 +262,40 @@ colnames(SEs) <- c("sandwich", "conventional")
 SEs
 ```
 
+I'll modify Kmenta's data to reflect nonconstant error variance, regenerating the data as Kmenta did originally from the *reduced-form* equations, expressing the endogenous variables $P$ and $Q$ as functions of the exogenous variables $D$, $F$, and $A$, and reduced-form errors $v_1$ and $v_2$:
+```{r}
+Kmenta2 <- Kmenta[, c("D", "F", "A")]
+set.seed(492365) # for reproducibility
+Kmenta2 <- within(Kmenta2, {
+    EQ <- 75.25 + 0.1125*D + 0.1250*F + 0.225*A
+    EP <- 85.00 + 0.7500*D - 0.5000*F - 0.900*A
+    e1 <- rnorm(20)
+    e2 <- rnorm(20)
+    v1 <- 2*e1
+    v2 <- -0.5*v1 + e2
+    v1 <- v1*3*(EQ - min(EQ) + 0.1)/(max(EQ) - min(EQ))
+    Q <- EQ + v1
+    P <- EP + v2
+})
+```
+Plotting the sampled reduced-form errors `v1` against the expectation of `Q` shows a clear heterscedastic pattern:
+```{r}
+with(Kmenta2, plot(EQ, v1))
+```
+
+Then refitting the demand equation to the new data set, I get
+```{r}
+deq2 <- update(deq, data=Kmenta2)
+summary(deq2)
+```
+and the nonconstant error variance is clearly reflected in diagnostics; for example,
+```{r}
+spreadLevelPlot(deq2)
+```
+```{r}
+ncvTest(deq2)
+```
+The extreme value of the suggested power transformation of $Q$ from the spread-level plot, $\lambda =-23$, reflects (as we noted previously) the fact that $\max(Q)/\min(Q)$ isn't much larger than 1.
 
 ## Other Diagnostics
 
