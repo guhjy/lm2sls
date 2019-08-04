@@ -76,7 +76,7 @@ The package also provides methods for various standard R regression-model generi
 
 ### Unusual Data Diagnostics: An Example
 
-The **lm2sls** package contains the `Kmenta` data set, used in @Kmenta1986 to illustrate  estimation (by 2SLS and other methods) of a linear simultaneous equation econometric model. The data, which are partly contrived, represent an annual time series for the U.S. economy from 1922 to 1941, with the following variables:
+The **lm2sls** package contains the `Kmenta` data set, used in @Kmenta1986[, Ch. 13] to illustrate  estimation (by 2SLS and other methods) of a linear simultaneous equation econometric model. The data, which are partly contrived, represent an annual time series for the U.S. economy from 1922 to 1941, with the following variables:
 
 * `Q`, food consumption per capita
 * `P`, ratio of food prices to general consumer prices
@@ -91,14 +91,26 @@ Kmenta
 ```
 
 
-Kmenta estimates the following two-equation model, with the first equation representing demand and the second supply:
+Kmenta estimated the following two-equation model, with the first equation representing demand and the second supply:
 \begin{align}
 Q &= \beta_{10} + \beta_{11} P + \beta_{12} D + \varepsilon_1 \\
 Q &= \beta_{20} + \beta_{21} P + \beta_{22} F + \beta_{23} A + \varepsilon_2
 \end{align}
-The variables $D$, $F$, and $A$ are taken as exogenous, as of course is the constant regressor (a columns of $1$s), and $P$ in both structural equations is an endogenous explanatory variable. Because there are four instrumental variables available, the first structural equation, which has three coefficients, is over-identified, while the second structural equation, with four coefficients, is just-identified. The values of the exogenous variable are real, while those of the endogenous variables are simulated according to this model, with assumed values of the parameters.
+The variables $D$, $F$, and $A$ are taken as exogenous, as of course is the constant regressor (a columns of $1$s), and $P$ in both structural equations is an endogenous explanatory variable. Because there are four instrumental variables available, the first structural equation, which has three coefficients, is over-identified, while the second structural equation, with four coefficients, is just-identified. 
 
-The structural equations may be estimated as follows:
+The values of the exogenous variables are real, while those of the endogenous variables were simulated according to the model, with the following assumed values of the parameters:
+\begin{align}
+Q &= 96.5 - 0.25 P + 0.30 D + \varepsilon_1 \\
+Q &= 62.5 + 0.15 P + 0.20 F + 0.36 A + \varepsilon_2
+\end{align}
+Solving the structural equations for the endogenous variables $P$ and $Q$ produces the *reduced form* of the model
+\begin{align}
+Q &= 75.25 + 11.25 D + 0.125 F + 0.225 A + \nu_1\\
+P &= 85.00 + 0.75 D - 0.50 F - 0.90 A + \nu_2
+\end{align}
+Kmenta independently sampled 20 values of $\delta_1$ and $\delta_2$ each from $N(0, 1)$, and then set $\nu_1 = 2 \delta_1$ and $\nu_2 = -0.5 \nu_1 + \delta_2$.
+
+The structural equations may be estimated as follows by the `lm2sls()` function:
 ```{r}
 deq <- lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta)     # demand equation
 summary(deq)
@@ -262,17 +274,17 @@ colnames(SEs) <- c("sandwich", "conventional")
 SEs
 ```
 
-I'll modify Kmenta's data to reflect nonconstant error variance, regenerating the data as Kmenta did originally from the *reduced-form* equations, expressing the endogenous variables $P$ and $Q$ as functions of the exogenous variables $D$, $F$, and $A$, and reduced-form errors $v_1$ and $v_2$:
+I'll modify Kmenta's data to reflect nonconstant error variance, regenerating the data as Kmenta did originally from the reduced-form equations, expressing the endogenous variables $P$ and $Q$ as functions of the exogenous variables $D$, $F$, and $A$, and reduced-form errors $\nu_1$ and $\nu_2$:
 ```{r}
 Kmenta2 <- Kmenta[, c("D", "F", "A")]
 set.seed(492365) # for reproducibility
 Kmenta2 <- within(Kmenta2, {
     EQ <- 75.25 + 0.1125*D + 0.1250*F + 0.225*A
     EP <- 85.00 + 0.7500*D - 0.5000*F - 0.900*A
-    e1 <- rnorm(20)
-    e2 <- rnorm(20)
-    v1 <- 2*e1
-    v2 <- -0.5*v1 + e2
+    d1 <- rnorm(20)
+    d2 <- rnorm(20)
+    v1 <- 2*d1
+    v2 <- -0.5*v1 + d2
     v1 <- v1*3*(EQ - min(EQ) + 0.1)/(max(EQ) - min(EQ))
     Q <- EQ + v1
     P <- EP + v2
@@ -295,8 +307,6 @@ spreadLevelPlot(deq2)
 ```{r}
 ncvTest(deq2)
 ```
-The extreme value of the suggested power transformation of $Q$ from the spread-level plot, $\lambda =-23$, reflects (as we noted previously) the fact that $\max(Q)/\min(Q)$ isn't much larger than 1.
-
-## Other Diagnostics
+The extreme value of the suggested power transformation of $Q$ from the spread-level plot, $\lambda =-23$, reflects (as I noted previously) the fact that $\max(Q)/\min(Q)$ isn't much larger than 1.
 
 ## References
