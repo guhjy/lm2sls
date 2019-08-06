@@ -224,6 +224,14 @@ crPlots(deq2, smooth=list(span=1))
 
 Because the ratio $\max(P)/\min(P) = 113.49/86.50 = 1.3$ is not much larger than 1, I subtracted a number slightly smaller than $\min(P)$ from $P$ prior to raising the variable to the 4th power to induce substantial nonlinearity into the fitted regression curve. The resulting component-plus-residual plot for $P$ clearly reflects the resulting lack of fit, while the plot for $D$ is still reasonably linear.
 
+Predictor effect plots with partial residuals show a different view of the same situation by placing `P` rather than the transformed `P` on the horizontal axis, and revealing that the fitted nonlinear partial regression function fails to capture the linear pattern of the data:
+
+```{r fig.height=4, fig.width=8}
+plot(predictorEffects(deq2, residuals=TRUE), 
+     partial.residuals=list(span=1))
+```
+
+
 ## Nonconstant Error Variance
 
 Standard least-squares nonconstant variance ("heteroscedasticity") diagnostics extend straightforwardly to 2SLS regression. We can, for example, plot studentized residuals versus fitted values to discern a tendency for the variability of the former to change (typically to increase) with the level of the latter. For the demand equation in Kmenta's model,
