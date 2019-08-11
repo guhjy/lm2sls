@@ -36,7 +36,11 @@ Because the columns of $\widehat{X}$ are linear combinations of the columns of $
 
 As an alternative, we can obtain exactly the same estimates $b_{\mathrm{2SLS}}$ of $\beta$ by performing an OLS regression of $y$ on $\widehat{X}$, producing $b_{\mathrm{2SLS}} = (\widehat{X}^T \widehat{X}) \widehat{X}^T y$. This is Basmann's approach and it motivates the name "2SLS." 
 
-Whether we think of the second stage as IV estimation or OLS regression, we can combine the two stages into a single formula [see, e.g., @Fox1979]. This is what the `tsls()` function in the **sem** package does, but from the point of view of developing regression diagnostics, it's advantageous to compute the 2SLS estimator by two distinct OLS regressions. This is coincidentally also the approach taken by `ivreg()` in the **AER** package.
+Whether we think of the second stage as IV estimation or OLS regression, we can combine the two stages into a single formula:
+$$
+b_{\mathrm{2SLS}} = [X^T Z(Z^T Z)^{-1} Z^T X]^{-1} X^T Z (Z^T Z)^{-1} Z^{T} y
+$$
+This is what the `tsls()` function in the **sem** package does, but from the point of view of developing regression diagnostics, it's advantageous to compute the 2SLS estimator by two distinct OLS regressions. This is coincidentally also the approach taken by `ivreg()` in the **AER** package.
 
 
 ## Unusual-Data Diagnostics for 2SLS Regression
