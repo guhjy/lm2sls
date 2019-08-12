@@ -13,11 +13,12 @@
 #' the hatvalues for each stage are first divided by their average (number of coefficients in
 #' stage regression/number of cases); the geometric mean or casewise maximum values are then
 #' multiplied by the average hatvalue from the second stage.
-#' @param ... Not used.
+#' @param ... arguments to be passed down.
 #'
 #' @return In the case of \code{influence.2sls}, an object of class \code{"influence.2sls"}
 #' with the following components:
 #' \describe{
+#' \item{\code{model}}{the model matrix}
 #' \item{\code{dfbeta}}{influence on coefficients}
 #' \item{\code{sigma}}{deleted values of the residual standard deviation}
 #' \item{\code{dffits}}{overall influence on the regression coefficients}
@@ -45,7 +46,8 @@
 #' @export
 #' @seealso \code{\link{lm2sls}}, \link{2SLS_Methods}, \code{\link[car]{avPlots}},
 #'   \code{\link[car]{crPlots}}, \code{\link[effects]{predictorEffects}},
-#'   \code{\link[car]{qqPlot}}
+#'   \code{\link[car]{qqPlot}}, \code{\link[car]{influencePlot}},
+#'   \code{\link[car]{infIndexPlot}}
 #' @examples
 #' kmenta.eq1 <- lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta)
 #' car::avPlots(kmenta.eq1)
@@ -132,7 +134,8 @@ influence.2sls <- function(model, sigma. = n <= 1e3, type=c("stage2", "both"), .
 
   cookd <- (sigma^2/sigma2)*dffits^2/p
 
-  result <- list(dfbeta = naresid(na.action, dfbeta),
+  result <- list(model = model.matrix(model),
+                 dfbeta = naresid(na.action, dfbeta),
                  sigma = naresid(na.action, sigma),
                  dffits = naresid(na.action, dffits),
                  cookd = naresid(na.action, cookd),
@@ -246,7 +249,7 @@ qqPlot.2sls <- function(x, xlab=paste(distribution, "Quantiles"),
 
 #' @rdname influence.2sls
 #' @method qqPlot influence.2sls
-#' @param x A `2sls` or `influence.2sls` object.
+#' @param x A \code{"2sls"} or \code{"influence.2sls"} object.
 #' @param xlab,ylab,main,distribution,line,las,envelope,col,col.lines,lwd,pch,cex,id,grid See \code{\link[car]{qqPlot}}.
 #' @export
 qqPlot.influence.2sls <- function(x, xlab=paste(distribution, "Quantiles"),
@@ -271,3 +274,48 @@ qqPlot.influence.2sls <- function(x, xlab=paste(distribution, "Quantiles"),
   }
 }
 
+#' @rdname influence.2sls
+#' @method influencePlot 2sls
+#' @importFrom car influencePlot
+#' @export
+influencePlot.2sls <- function(model, ...){
+  influencePlot(influence(model), ...)
+}
+
+#' @rdname influence.2sls
+#' @method influencePlot influence.2sls
+#' @export
+influencePlot.influence.2sls <- function(model, ...){
+  if (length(class(model)) == 1) {
+    class(model) <- c(class(model), "lm")
+    influencePlot(model)
+  }
+  else NextMethod()
+}
+
+#' @rdname influence.2sls
+#' @method infIndexPlot 2sls
+#' @export
+infIndexPlot.2sls <- function(model, ...){
+  infIndexPlot(influence(model), ...)
+}
+
+#' @rdname influence.2sls
+#' @method infIndexPlot influence.2sls
+#' @importFrom car infIndexPlot
+#' @export
+infIndexPlot.influence.2sls <- function(model, ...){
+  if (length(class(model)) == 1) {
+    class(model) <- c(class(model), "lm")
+    infIndexPlot(model, ...)
+  }
+  else NextMethod()
+}
+
+#' @rdname influence.2sls
+#' @method model.matrix influence.2sls
+#' @param object An \code{"influence.2sls"} object.
+#' @export
+model.matrix.influence.2sls <- function(object, ...){
+  object$model
+}

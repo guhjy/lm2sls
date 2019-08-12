@@ -13,6 +13,11 @@
 \alias{cooks.distance.influence.2sls}
 \alias{qqPlot.2sls}
 \alias{qqPlot.influence.2sls}
+\alias{influencePlot.2sls}
+\alias{influencePlot.influence.2sls}
+\alias{infIndexPlot.2sls}
+\alias{infIndexPlot.influence.2sls}
+\alias{model.matrix.influence.2sls}
 \title{Deletion Diagnostic Methods for \code{"2sls"} Objects}
 \usage{
 \method{influence}{2sls}(model, sigma. = n <= 1000, type = c("stage2",
@@ -51,6 +56,16 @@
   col = car::carPalette()[1], col.lines = car::carPalette()[2],
   lwd = 2, pch = 1, cex = par("cex"), id = TRUE, grid = TRUE,
   ...)
+
+\method{influencePlot}{2sls}(model, ...)
+
+\method{influencePlot}{influence.2sls}(model, ...)
+
+\method{infIndexPlot}{2sls}(model, ...)
+
+\method{infIndexPlot}{influence.2sls}(model, ...)
+
+\method{model.matrix}{influence.2sls}(object, ...)
 }
 \arguments{
 \item{model}{A \code{"2sls"} or \code{"influence.2sls"} object.}
@@ -67,16 +82,19 @@ the hatvalues for each stage are first divided by their average (number of coeff
 stage regression/number of cases); the geometric mean or casewise maximum values are then
 multiplied by the average hatvalue from the second stage.}
 
-\item{...}{Not used.}
+\item{...}{arguments to be passed down.}
 
-\item{x}{A `2sls` or `influence.2sls` object.}
+\item{x}{A \code{"2sls"} or \code{"influence.2sls"} object.}
 
 \item{xlab, ylab, main, distribution, line, las, envelope, col, col.lines, lwd, pch, cex, id, grid}{See \code{\link[car]{qqPlot}}.}
+
+\item{object}{An \code{"influence.2sls"} object.}
 }
 \value{
 In the case of \code{influence.2sls}, an object of class \code{"influence.2sls"}
 with the following components:
 \describe{
+\item{\code{model}}{the model matrix}
 \item{\code{dfbeta}}{influence on coefficients}
 \item{\code{sigma}}{deleted values of the residual standard deviation}
 \item{\code{dffits}}{overall influence on the regression coefficients}
@@ -115,5 +133,6 @@ if (require(effects)){
 \seealso{
 \code{\link{lm2sls}}, \link{2SLS_Methods}, \code{\link[car]{avPlots}},
   \code{\link[car]{crPlots}}, \code{\link[effects]{predictorEffects}},
-  \code{\link[car]{qqPlot}}
+  \code{\link[car]{qqPlot}}, \code{\link[car]{influencePlot}},
+  \code{\link[car]{infIndexPlot}}
 }
