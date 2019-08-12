@@ -114,6 +114,6 @@ if (require(effects)){
 }
 \seealso{
 \code{\link{lm2sls}}, \link{2SLS_Methods}, \code{\link[car]{avPlots}},
-  \code{\link[car]{crPlots}}, \code{\link[effects]{predictorEffects}}, 
+  \code{\link[car]{crPlots}}, \code{\link[effects]{predictorEffects}},
   \code{\link[car]{qqPlot}}
 }

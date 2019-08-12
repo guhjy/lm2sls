@@ -44,7 +44,7 @@
 #' @importFrom stats influence
 #' @export
 #' @seealso \code{\link{lm2sls}}, \link{2SLS_Methods}, \code{\link[car]{avPlots}},
-#'   \code{\link[car]{crPlots}}, \code{\link[effects]{predictorEffects}}, 
+#'   \code{\link[car]{crPlots}}, \code{\link[effects]{predictorEffects}},
 #'   \code{\link[car]{qqPlot}}
 #' @examples
 #' kmenta.eq1 <- lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta)
@@ -57,8 +57,6 @@
 #'   plot(effects::predictorEffects(kmenta.eq1, residuals=TRUE))
 #' }
 influence.2sls <- function(model, sigma. = n <= 1e3, type=c("stage2", "both"), ...){
-
-  if (!is.null(model$weights)) stop("weights not supported") #TODO: support weights?
 
   type <- match.arg(type)
 
@@ -78,7 +76,17 @@ influence.2sls <- function(model, sigma. = n <= 1e3, type=c("stage2", "both"), .
 
   names(hatvalues) <- rnames
 
-  rss <- sum(res^2)
+  w <- model$weights
+  if (!is.null(w)){
+    w <- sqrt(w)
+    X <- diagprod(w, X)
+    Z <- diagprod(w, Z)
+    X.fit <- diagprod(w, X.fit)
+    y <- w*y
+  }
+  else w <- 1
+
+  rss <- sum((w*res)^2)
   ZtZinv <- solve(crossprod(Z)) #TODO: avoid matrix inversions?
   XtZ <- crossprod(X, Z)
   A <- XtZ %*% ZtZinv %*% t(XtZ)
@@ -120,7 +128,7 @@ influence.2sls <- function(model, sigma. = n <= 1e3, type=c("stage2", "both"), .
   }
 
 
-  rstudent <- res/(sigma * sqrt(1 - hatvalues))
+  rstudent <- w*res/(sigma * sqrt(1 - hatvalues))
 
   cookd <- (sigma^2/sigma2)*dffits^2/p
 
@@ -227,11 +235,11 @@ qqPlot.2sls <- function(x, xlab=paste(distribution, "Quantiles"),
   rstudent <- rstudent(x)
   if (distribution == "t"){
     car::qqPlot(rstudent, xlab=xlab, ylab=ylab, main=main, distribution="t", line=line,
-                envelope=envelope, col=col, col.lines=col.lines, id=id, grid=grid, 
+                envelope=envelope, col=col, col.lines=col.lines, id=id, grid=grid,
                 df=df.residual(x), ...)
   } else {
     car::qqPlot(rstudent, xlab=xlab, ylab=ylab, main=main, distribution="norm", line=line,
-                envelope=envelope, col=col, col.lines=col.lines, id=id, grid=grid, 
+                envelope=envelope, col=col, col.lines=col.lines, id=id, grid=grid,
                 ...)
   }
 }
@@ -246,7 +254,7 @@ qqPlot.influence.2sls <- function(x, xlab=paste(distribution, "Quantiles"),
                                              deparse(substitute(x)), ")", sep=""),
                                   main=NULL, distribution=c("t", "norm"),
                                   line=c("robust", "quartiles", "none"), las=par("las"),
-                                  envelope=.95,col=car::carPalette()[1], col.lines=car::carPalette()[2], 
+                                  envelope=.95,col=car::carPalette()[1], col.lines=car::carPalette()[2],
                                   lwd=2, pch=1, cex=par("cex"),
                                   id=TRUE, grid=TRUE, ...){
   distribution <- match.arg(distribution)
@@ -254,11 +262,11 @@ qqPlot.influence.2sls <- function(x, xlab=paste(distribution, "Quantiles"),
   rstudent <- rstudent(x)
   if (distribution == "t"){
     car::qqPlot(rstudent, xlab=xlab, ylab=ylab, main=main, distribution="t", line=line,
-                envelope=envelope, col=col, col.lines=col.lines, id=id, grid=grid, 
+                envelope=envelope, col=col, col.lines=col.lines, id=id, grid=grid,
                 df=df.residual(x), ...)
   } else {
     car::qqPlot(rstudent, xlab=xlab, ylab=ylab, main=main, distribution="norm", line=line,
-                envelope=envelope, col=col, col.lines=col.lines, id=id, grid=grid, 
+                envelope=envelope, col=col, col.lines=col.lines, id=id, grid=grid,
                 ...)
   }
 }
