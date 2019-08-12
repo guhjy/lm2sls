@@ -226,51 +226,33 @@ cooks.distance.influence.2sls <- {
 #' @importFrom car qqPlot
 #' @importFrom graphics par
 #' @export
-qqPlot.2sls <- function(x, xlab=paste(distribution, "Quantiles"),
-                        ylab=paste("Studentized Residuals(",
-                                   deparse(substitute(x)), ")", sep=""),
-                        main=NULL, distribution=c("t", "norm"),
-                        line=c("robust", "quartiles", "none"), las=par("las"),
-                        envelope=.95,col=car::carPalette()[1], col.lines=car::carPalette()[2], lwd=2, pch=1, cex=par("cex"),
-                        id=TRUE, grid=TRUE, ...){
+qqPlot.2sls <- function(x,
+                        ylab=paste("Studentized Residuals(",deparse(substitute(x)), ")", sep=""),
+                        distribution=c("t", "norm"), ...){
   distribution <- match.arg(distribution)
-  line <- match.arg(line)
   rstudent <- rstudent(x)
   if (distribution == "t"){
-    car::qqPlot(rstudent, xlab=xlab, ylab=ylab, main=main, distribution="t", line=line,
-                envelope=envelope, col=col, col.lines=col.lines, id=id, grid=grid,
-                df=df.residual(x), ...)
+    car::qqPlot(rstudent, ylab=ylab, distribution="t", df=df.residual(x), ...)
   } else {
-    car::qqPlot(rstudent, xlab=xlab, ylab=ylab, main=main, distribution="norm", line=line,
-                envelope=envelope, col=col, col.lines=col.lines, id=id, grid=grid,
-                ...)
+    car::qqPlot(rstudent, ylab=ylab, distribution="norm", ...)
   }
 }
 
 #' @rdname influence.2sls
 #' @method qqPlot influence.2sls
 #' @param x A \code{"2sls"} or \code{"influence.2sls"} object.
-#' @param xlab,ylab,main,distribution,line,las,envelope,col,col.lines,lwd,pch,cex,id,grid See \code{\link[car]{qqPlot}}.
+#' @param distribution \code{"t"} (the default) or \code{"norm"}.
+#' @param ylab The vertical axis label.
 #' @export
-qqPlot.influence.2sls <- function(x, xlab=paste(distribution, "Quantiles"),
-                                  ylab=paste("Studentized Residuals(",
-                                             deparse(substitute(x)), ")", sep=""),
-                                  main=NULL, distribution=c("t", "norm"),
-                                  line=c("robust", "quartiles", "none"), las=par("las"),
-                                  envelope=.95,col=car::carPalette()[1], col.lines=car::carPalette()[2],
-                                  lwd=2, pch=1, cex=par("cex"),
-                                  id=TRUE, grid=TRUE, ...){
+qqPlot.influence.2sls <- function(x,
+                                  ylab=paste("Studentized Residuals(",deparse(substitute(x)), ")", sep=""),
+                                  distribution=c("t", "norm"), ...){
   distribution <- match.arg(distribution)
-  line <- match.arg(line)
   rstudent <- rstudent(x)
   if (distribution == "t"){
-    car::qqPlot(rstudent, xlab=xlab, ylab=ylab, main=main, distribution="t", line=line,
-                envelope=envelope, col=col, col.lines=col.lines, id=id, grid=grid,
-                df=df.residual(x), ...)
+    car::qqPlot(rstudent, ylab=ylab, distribution="t", df=df.residual(x), ...)
   } else {
-    car::qqPlot(rstudent, xlab=xlab, ylab=ylab, main=main, distribution="norm", line=line,
-                envelope=envelope, col=col, col.lines=col.lines, id=id, grid=grid,
-                ...)
+    car::qqPlot(rstudent, ylab=ylab, ...)
   }
 }
 

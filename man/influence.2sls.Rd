@@ -40,21 +40,12 @@
 
 \method{cooks.distance}{influence.2sls}(model, ...)
 
-\method{qqPlot}{2sls}(x, xlab = paste(distribution, "Quantiles"),
-  ylab = paste("Studentized Residuals(", deparse(substitute(x)), ")", sep
-  = ""), main = NULL, distribution = c("t", "norm"),
-  line = c("robust", "quartiles", "none"), las = par("las"),
-  envelope = 0.95, col = car::carPalette()[1],
-  col.lines = car::carPalette()[2], lwd = 2, pch = 1,
-  cex = par("cex"), id = TRUE, grid = TRUE, ...)
+\method{qqPlot}{2sls}(x, ylab = paste("Studentized Residuals(",
+  deparse(substitute(x)), ")", sep = ""), distribution = c("t", "norm"),
+  ...)
 
-\method{qqPlot}{influence.2sls}(x, xlab = paste(distribution,
-  "Quantiles"), ylab = paste("Studentized Residuals(",
-  deparse(substitute(x)), ")", sep = ""), main = NULL,
-  distribution = c("t", "norm"), line = c("robust", "quartiles",
-  "none"), las = par("las"), envelope = 0.95,
-  col = car::carPalette()[1], col.lines = car::carPalette()[2],
-  lwd = 2, pch = 1, cex = par("cex"), id = TRUE, grid = TRUE,
+\method{qqPlot}{influence.2sls}(x, ylab = paste("Studentized Residuals(",
+  deparse(substitute(x)), ")", sep = ""), distribution = c("t", "norm"),
   ...)
 
 \method{influencePlot}{2sls}(model, ...)
@@ -86,7 +77,9 @@ multiplied by the average hatvalue from the second stage.}
 
 \item{x}{A \code{"2sls"} or \code{"influence.2sls"} object.}
 
-\item{xlab, ylab, main, distribution, line, las, envelope, col, col.lines, lwd, pch, cex, id, grid}{See \code{\link[car]{qqPlot}}.}
+\item{ylab}{The vertical axis label.}
+
+\item{distribution}{\code{"t"} (the default) or \code{"norm"}.}
 
 \item{object}{An \code{"influence.2sls"} object.}
 }
