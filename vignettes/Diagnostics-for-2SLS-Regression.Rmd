@@ -1,7 +1,7 @@
 ---
 title: "Diagnostics for 2SLS Regression"
 author: "John Fox"
-date: "2019-08-07"
+date: "2019-08-12"
 bibliography: Diagnostics-for-2SLS-Regression.bib
 biblio-style: "apalike"
 output: rmarkdown::html_vignette
@@ -284,7 +284,7 @@ Remedies for nonconstant variance in 2SLS regression are similar to those in lea
 
 * I've already suggested that if the error variance increases (or decreases) with the level of the response, and if the response is positive, then we might be able to stabilize the error variance by power-transforming the response. 
 
-* If, alternatively, we know the variance of the errors up to a constant of proportionality, then we can use inverse-variance weights for the 2SLS estimator. 
+* If, alternatively, we know the variance of the errors up to a constant of proportionality, then we can use inverse-variance weights for the 2SLS estimator. The `lm2sls()` function supports weighted 2SLS regression, and the diagnostics in the **lm2sls** package work with weighted 2SLS fits.
 
 * Finally, we can employ a *"sandwich" estimator* of the coefficient covariance matrix in 2SLS to correct standard errors for nonconstant error variance, much as in least-squares regression as proposed by @Huber1967 and @White1980 [also see @LongErvin2000]. 
 
