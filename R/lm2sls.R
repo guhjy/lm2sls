@@ -1,3 +1,12 @@
+na.remove <- function(x){
+  # remove NAs from a vector preserving names and returning a vector
+  if (!is.vector(x)) "x is not a vector"
+  x <- na.omit(x)
+  nms <- names(x)
+  x <- as.vector(x)
+  if (!is.null(nms)) names(x) <- nms
+  x
+}
 
 #' 2SLS Regression
 #'
@@ -500,16 +509,16 @@ diagprod <- function(d, X){
 #' @export
 estfun.2sls <- function (x, ...) {
   if (x$rank < x$p) stop("second stage model matrix is of deficient rank")
-  w <- x$weights
+  w <- weights(x)
   if (is.null(w)) w <- 1
-  diagprod(w*residuals(x), model.matrix(x, type="stage2"))
+  diagprod(na.remove(w*residuals(x)), model.matrix(x, type="stage2"))
 }
 
 #' R-Squares Analog
 #'
 #' @param model A model object.
 #' @param ... Possible arguments for specific methods.
-#' @importFrom stats na.omit model.response model.frame df.residual
+#' @importFrom stats na.omit model.response model.frame df.residual weights
 #' @export
 #'
 #' @examples
@@ -523,11 +532,11 @@ Rsq <- function(model, ...){
 #' @param adjusted If \code{TRUE} (the default is \code{FALSE}) return the \eqn{R^2} adjusted
 #' for degrees of freedom.
 Rsq.default <- function(model, adjusted=FALSE, ...){
-  w <- model$weights
+  w <- weights(model)
   if (is.null(w)) w <- 1
   SSE <- sum(w*residuals(model)^2, na.rm=TRUE)
-  y <- na.omit(model.response(model.frame(model)))
-  SST <- sum(w*(y - mean(y))^2)
+  y <- model$y
+  SST <- sum(na.omit(w)*(y - mean(y))^2)
   if (adjusted) {
     1 - (SSE/df.residual(model))/(SST/(model$n - 1))
   }

@@ -67,9 +67,9 @@ influence.2sls <- function(model, sigma. = n <= 1e3, type=c("stage2", "both"), .
   X.fit <- model$fitted.1
   y <- model$y
   b <- model$coefficients
-  res <- model$residuals
+  res <- na.remove(model$residuals)
   sigma2 <- model$sigma^2
-  hatvalues <-  na.omit(hatvalues(model, type=type))
+  hatvalues <-  na.remove(hatvalues(model, type=type))
 
   na.action <- model$na.action
 
@@ -78,7 +78,7 @@ influence.2sls <- function(model, sigma. = n <= 1e3, type=c("stage2", "both"), .
 
   names(hatvalues) <- rnames
 
-  w <- model$weights
+  w <- na.remove(model$weights)
   if (!is.null(w)){
     w <- sqrt(w)
     X <- diagprod(w, X)
