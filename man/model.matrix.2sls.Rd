@@ -23,7 +23,7 @@
 
 \method{vcov}{2sls}(object, ...)
 
-\method{residuals}{2sls}(object, type = c("model", "stage1", "stage2",
+\method{residuals}{2sls}(object, type = c("response", "stage1", "stage2",
   "working", "deviance", "pearson", "partial"), ...)
 
 \method{fitted}{2sls}(object, type = c("model", "stage1", "stage2"), ...)
@@ -51,8 +51,8 @@
 \describe{
   \item{\code{model.matrix}}{\code{"model"} (the default), \code{"instruments"}, or
     \code{"stage2"}.}
-  \item{\code{residuals}}{\code{"model"}, \code{"stage1"}, \code{"stage2"},
-    \code{"working"} (equivalent to \code{"model"}), \code{"deviance"},
+  \item{\code{residuals}}{\code{"response"}, \code{"stage1"}, \code{"stage2"},
+    \code{"working"} (equivalent to \code{"response"}), \code{"deviance"},
     \code{"pearson"} (equivalent to \code{"deviance"}), or \code{"partial"}.}
   \item{\code{fitted}}{\code{"model"}, \code{"stage1"}, or \code{"stage2"}.}
   }}
@@ -97,6 +97,6 @@ summary(kmenta.eq1, vcov.=sandwich::sandwich) # sandwich SEs
 plot(fitted(kmenta.eq1), residuals(kmenta.eq1)) # residuals vs fitted values
 }
 \seealso{
-\code{\link{lm2sls}}, \link{2SLS_Diagnostics}, 
+\code{\link{lm2sls}}, \link{2SLS_Diagnostics},
   \code{\link[sandwich]{sandwich}}
 }

@@ -53,7 +53,6 @@ those returned by \code{\link{fit2sls}}:
   the model formula.}
   \item{\code{y}}{the response-variable vector.}
   \item{\code{model.matrix.instruments}}{the model matrix for the first-stage regression.}
-  \item{\code{w}}{the vector of weights (for a weighted fit).}
   \item{\code{wt.var}}{the name of the weight variable (for a weighted fit).}
   \item{\code{na.action}}{the na.action argument.}
   \item{\code{call}}{the function call.}

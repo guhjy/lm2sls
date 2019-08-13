@@ -40,6 +40,7 @@ A list with the following components:
   \item{\code{fitted.1}}{matrix of stage-1 fitted values}
   \item{\code{residuals.2}}{stage-2 residuals}
   \item{\code{fitted.2}}{stage-2 fitted values}
+  \item{\code{weights}}{model weights or \code{NULL}}
 }
 }
 \description{

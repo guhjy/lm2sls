@@ -28,6 +28,7 @@
 #'   \item{\code{fitted.1}}{matrix of stage-1 fitted values}
 #'   \item{\code{residuals.2}}{stage-2 residuals}
 #'   \item{\code{fitted.2}}{stage-2 fitted values}
+#'   \item{\code{weights}}{model weights or \code{NULL}}
 #' }
 #'
 #' @importFrom stats lsfit naresid napredict
@@ -59,7 +60,7 @@ fit2sls <- function(y, X, Z, wt=NULL, singular.ok=FALSE, qr=TRUE){
     if (!is.null(wt)) wt <- wt[-na.action]
   }
   else na.action <- NULL
-  
+
   rnames <- rownames(X)
   names(y) <- rnames
 
@@ -88,7 +89,7 @@ fit2sls <- function(y, X, Z, wt=NULL, singular.ok=FALSE, qr=TRUE){
   }
   residuals.2 <- stage2$residuals
   names(residuals.2) <- rnames
-  
+
   fitted <- as.vector(X %*% stage2$coef)
   names(fitted) <- rnames
   residuals <- y - fitted
@@ -118,7 +119,8 @@ fit2sls <- function(y, X, Z, wt=NULL, singular.ok=FALSE, qr=TRUE){
     residuals.1    = naresid(na.action, residuals.1),
     fitted.1       = napredict(na.action, X.fit),
     residuals.2    = naresid(na.action, residuals.2),
-    fitted.2       = napredict(na.action, y - stage2$residuals)
+    fitted.2       = napredict(na.action, y - stage2$residuals),
+    weights        = if (!is.null(wt)) naresid(na.action, wt) else NULL
   )
 }
 
@@ -154,7 +156,6 @@ fit2sls <- function(y, X, Z, wt=NULL, singular.ok=FALSE, qr=TRUE){
 #'   the model formula.}
 #'   \item{\code{y}}{the response-variable vector.}
 #'   \item{\code{model.matrix.instruments}}{the model matrix for the first-stage regression.}
-#'   \item{\code{w}}{the vector of weights (for a weighted fit).}
 #'   \item{\code{wt.var}}{the name of the weight variable (for a weighted fit).}
 #'   \item{\code{na.action}}{the na.action argument.}
 #'   \item{\code{call}}{the function call.}
@@ -224,7 +225,6 @@ lm2sls <- function (formula, instruments=rhs(formula), data, subset, weights,
     model.matrix             = if (x) X else NULL,
     y                        = if (y) y. else NULL,
     model.matrix.instruments = if (x) Z else NULL,
-    weights                  = w,
     wt.var                   = wt.var,
     na.action                = na.act,
     call                     = cl,
@@ -250,8 +250,8 @@ lm2sls <- function (formula, instruments=rhs(formula), data, subset, weights,
 #' \describe{
 #'   \item{\code{model.matrix}}{\code{"model"} (the default), \code{"instruments"}, or
 #'     \code{"stage2"}.}
-#'   \item{\code{residuals}}{\code{"model"}, \code{"stage1"}, \code{"stage2"},
-#'     \code{"working"} (equivalent to \code{"model"}), \code{"deviance"},
+#'   \item{\code{residuals}}{\code{"response"}, \code{"stage1"}, \code{"stage2"},
+#'     \code{"working"} (equivalent to \code{"response"}), \code{"deviance"},
 #'     \code{"pearson"} (equivalent to \code{"deviance"}), or \code{"partial"}.}
 #'   \item{\code{fitted}}{\code{"model"}, \code{"stage1"}, or \code{"stage2"}.}
 #'   }
@@ -260,7 +260,7 @@ lm2sls <- function (formula, instruments=rhs(formula), data, subset, weights,
 #' @importFrom stats model.matrix
 #' @export
 #' @method model.matrix 2sls
-#' @seealso \code{\link{lm2sls}}, \link{2SLS_Diagnostics}, 
+#' @seealso \code{\link{lm2sls}}, \link{2SLS_Diagnostics},
 #'   \code{\link[sandwich]{sandwich}}
 #' @examples
 #' kmenta.eq1 <- lm2sls(Q ~ P + D, ~ D + F + A, data=Kmenta)
@@ -296,14 +296,14 @@ vcov.2sls <- function(object, ...) {
 #' @rdname model.matrix.2sls
 #' @importFrom stats residuals predict
 #' @export
-residuals.2sls <- function(object, type=c("model", "stage1", "stage2", "working",
+residuals.2sls <- function(object, type=c("response", "stage1", "stage2", "working",
                                           "deviance", "pearson", "partial"), ...){
   type <- match.arg(type)
   w <- object$weights
   if (is.null(w)) w <- 1
   res <- switch(type,
          working  =,
-         model    = object$residuals,
+         response  = object$residuals,
          deviance =,
          pearson  = sqrt(w)*object$residuals,
          stage1   = object$residuals.1,
@@ -523,9 +523,11 @@ Rsq <- function(model, ...){
 #' @param adjusted If \code{TRUE} (the default is \code{FALSE}) return the \eqn{R^2} adjusted
 #' for degrees of freedom.
 Rsq.default <- function(model, adjusted=FALSE, ...){
-  SSE <- sum(residuals(model)^2, na.rm=TRUE)
+  w <- model$weights
+  if (is.null(w)) w <- 1
+  SSE <- sum(w*residuals(model)^2, na.rm=TRUE)
   y <- na.omit(model.response(model.frame(model)))
-  SST <- sum((y - mean(y))^2)
+  SST <- sum(w*(y - mean(y))^2)
   if (adjusted) {
     1 - (SSE/df.residual(model))/(SST/(model$n - 1))
   }
