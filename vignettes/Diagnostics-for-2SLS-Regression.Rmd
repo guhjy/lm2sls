@@ -306,7 +306,7 @@ Remedies for nonconstant variance in 2SLS regression are similar to those in lea
 
 * I've already suggested that if the error variance increases (or decreases) with the level of the response, and if the response is positive, then we might be able to stabilize the error variance by power-transforming the response. 
 
-* If, alternatively, we know the variance of the errors up to a constant of proportionality, then we can use inverse-variance weights for the 2SLS estimator. The `lm2sls()` function supports weighted 2SLS regression, and the diagnostics in the **lm2sls** package work with weighted 2SLS fits.
+* If, alternatively, we know the variance of the errors up to a constant of proportionality, then we can use inverse-variance weights for the 2SLS estimator. The `lm2sls()` function supports weighted 2SLS regression, and the diagnostics in the **lm2sls** package work with weighted 2SLS fits  (see the next section).
 
 * Finally, we can employ a *"sandwich" estimator* of the coefficient covariance matrix in 2SLS to correct standard errors for nonconstant error variance, much as in least-squares regression as proposed by @Huber1967 and @White1980 [also see @LongErvin2000]. 
 
@@ -355,6 +355,18 @@ spreadLevelPlot(deq2)
 ncvTest(deq2)
 ```
 The extreme value of the suggested power transformation of $Q$ from the spread-level plot, $\lambda =-23$, reflects (as I noted previously) the fact that $\max(Q)/\min(Q)$ isn't much larger than 1.
+
+## Weighted 2SLS Regession
+
+Suppose that we modify the regression model $y = X \beta + \varepsilon$ so that now $N_n(0, \sigma^2 W^{-1})$ where $W = \mathrm{diag}\{w_i\}$ is an $n \times n$ diagonal matrix of known inverse-variance weights; that is $V(\varepsilon_i) = \sigma^2/w_i$. As before, some of the columns of $X$ may be correlated with the errors $\varepsilon$, but we have sufficient instrumental variables $Z$ that are independent of the errors.
+
+Then the *weighted 2SLS* estimator is
+$$
+b_{\mathrm{W2SLS}} = [X^T W Z(Z^T W Z)^{-1} Z^T W X]^{-1} X^T W Z (Z^T W Z)^{-1} Z^{T} W y
+$$
+Alternatively, we can treat the two stages of 2SLS as *weighted least squares (WLS)* problems, in each stage minimizing the weighted sum of squared residuals. The `lm2sls()` function computes the weighted 2SLS estimator in this manner.
+
+Phillips's updating formulas for 2SLS regression could also be modified for the weighted case, but a simpler approach (which is evident in the formula for $b_{\mathrm{W2SLS}}$ above) is to convert the weighted 2SLS problem into an unweighted problem, by transforming the data to constant variance using $W^{1/2} = \mathrm{diag}\{\sqrt{w_i}\}$, the Cholesky square root of $W$. The square root of $W$ is particularly simple because $W$ is diagonal. Then in Phillips's updating formulas, we replace $y$ with $y^* = W^{1/2}y$, $X$ with $X^* = W^{1/2}X$, and $Z$ with $Z^* = W^{1/2}Z$.
 
 
 ## Concluding Remarks
