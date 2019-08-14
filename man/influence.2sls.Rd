@@ -87,6 +87,7 @@ multiplied by the average hatvalue from the second stage.}
 In the case of \code{influence.2sls}, an object of class \code{"influence.2sls"}
 with the following components:
 \describe{
+\item{\code{coefficients}}{the estimated regression coefficients}
 \item{\code{model}}{the model matrix}
 \item{\code{dfbeta}}{influence on coefficients}
 \item{\code{sigma}}{deleted values of the residual standard deviation}

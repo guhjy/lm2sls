@@ -18,6 +18,7 @@
 #' @return In the case of \code{influence.2sls}, an object of class \code{"influence.2sls"}
 #' with the following components:
 #' \describe{
+#' \item{\code{coefficients}}{the estimated regression coefficients}
 #' \item{\code{model}}{the model matrix}
 #' \item{\code{dfbeta}}{influence on coefficients}
 #' \item{\code{sigma}}{deleted values of the residual standard deviation}
@@ -135,6 +136,7 @@ influence.2sls <- function(model, sigma. = n <= 1e3, type=c("stage2", "both"), .
   cookd <- (sigma^2/sigma2)*dffits^2/p
 
   result <- list(model = model.matrix(model),
+                 coefficients=coef(model),
                  dfbeta = naresid(na.action, dfbeta),
                  sigma = naresid(na.action, sigma),
                  dffits = naresid(na.action, dffits),

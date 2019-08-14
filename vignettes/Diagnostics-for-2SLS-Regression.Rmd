@@ -171,7 +171,7 @@ qqPlot(deq)
 ```{r}
 influencePlot(deq)
 ```
-The circles in the influence plot have areas proportional to Cook's D, the horizontal lines are drawn at $\pm 2$ on the studentized residuals scale, and the vertical lines are at $2 \times \bar{h}$ and $3 \times \bar{h}$. I invite the reader to repeat these graphs, and the example below, for the second structural equation.
+The circles in the influence plot have areas proportional to Cook's D, the horizontal lines are drawn at 0 and $\pm 2$ on the studentized residuals scale (the horizontal line at $\mathrm{rstudent} = 2$ is off the graph), and the vertical lines are at $2 \times \bar{h}$ and $3 \times \bar{h}$. I invite the reader to repeat these graphs, and the example below, for the second structural equation.
 
 To generate a more interesting example, I'll change the value of $Q$ for the high-leverage 20th case (i.e, for 1941) from $Q_{20} = 106.232$ to $Q_{20} = 95$, a value that's well within the range of $Q$ in the data but out of line with the rest of the data:
 ```{r}
