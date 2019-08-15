@@ -210,7 +210,7 @@ H <- cbind(hatvalues(deq1), hatvalues(deq1, type="both"),
            hatvalues(deq1, type="maximum"))
 colnames(H) <- c("stage2", "geom.mean", "maximum")
 head(H)
-scatterplotMatrix(H)
+scatterplotMatrix(H, smooth=FALSE)
 ```
 
 Finally, let's verify that the deletion diagnostics are correctly computed:
