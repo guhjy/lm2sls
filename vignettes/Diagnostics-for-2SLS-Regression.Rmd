@@ -45,7 +45,7 @@ This is what the `tsls()` function in the **sem** package does, but from the poi
 
 ## Unusual-Data Diagnostics for 2SLS Regression
 
-As far as I can tell, diagnostics for regression models fit by 2SLS are a relatively neglected topic, but was addressed briefly by @BelsleyKuhWelsch1980 [pp. 266--268]. Deletion diagnostics directly assess the influence of each case on a fitted regression model by removing the case, refitting the model, and noting how the regression coefficients or other regression outputs, such as the residual standard deviation, change. 
+As far as I can tell, diagnostics for regression models fit by 2SLS are a relatively neglected topic, but were addressed briefly by @BelsleyKuhWelsch1980 [pp. 266--268]. Deletion diagnostics directly assess the influence of each case on a fitted regression model by removing the case, refitting the model, and noting how the regression coefficients or other regression outputs, such as the residual standard deviation, change. 
 
 Case-deletion diagnostics for influential data can always be obtained by brute-force computation, literally refitting the model with each case removed in turn, but this approach is inefficient and consequently unattractive in large samples. For some classes of statistical models, such as generalized linear models [e.g., @Pregibon1981], computationally less demanding approximations to case-deletion diagnostics are available, and for linear models efficient "updating" formulas are available [as described, e.g., by @BelsleyKuhWelsch1980] that permit the exact computation of case-deletion diagnostics. 
 
@@ -285,7 +285,7 @@ A variation of this graph, suggested by @Fox2016, adapts Tukey's *spread-level p
 ```{r}
 spreadLevelPlot(deq, smooth=list(span=1))
 ```
-which suggests a slight tendency of spread to increase wiht level. The transformation $\lambda = - 2.45$ seems strong, until we notice that the values of $Q$ are far from 0, and that the ratio of the largest to smallest values $Q_{\mathrm{max}}/Q_{\mathrm{min}} = 106.23/92.42 = 1.15$ is close to 1, so that $Q^{-2.45}$ is nearly a linear transformation of $Q$---that is, effectively no transformation at all:
+which suggests a slight tendency of spread to increase with level. The transformation $\lambda = - 2.45$ seems strong, until we notice that the values of $Q$ are far from 0, and that the ratio of the largest to smallest values $Q_{\mathrm{max}}/Q_{\mathrm{min}} = 106.23/92.42 = 1.15$ is close to 1, so that $Q^{-2.45}$ is nearly a linear transformation of $Q$---that is, effectively no transformation at all:
 ```{r}
 with(Kmenta, plot(Q, Q^2.5))
 abline(lm(Q^2.5 ~ Q, data=Kmenta))
