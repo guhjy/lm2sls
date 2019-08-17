@@ -1,7 +1,7 @@
 ---
 title: "Diagnostics for 2SLS Regression"
 author: "John Fox"
-date: "2019-08-14"
+date: "2019-08-17"
 bibliography: Diagnostics-for-2SLS-Regression.bib
 biblio-style: "apalike"
 output: rmarkdown::html_vignette
@@ -19,7 +19,7 @@ knitr::opts_chunk$set(echo = TRUE, comment=NA, prompt=TRUE, fig.height=4, fig.wi
 
 The **lm2sls** package extends a variety of standard numeric and graphical regression  diagnostics to linear models fit by *two-stage least-squares (2SLS)* regression, a commonly employed method of instrumental-variables estimation for potentially overidentified structural equations in which there are endogenous regressors. The `fit2sls()` function in the package computes the 2SLS estimator employing a low-level interface not generally intended for direct use, and returns a list containing quantities that faciliate the computation of various diagnostics. The `lm2sls()` function provides a user-friendly formula-based interface to `fit2sls()`.
 
-`lm2sls()` is broadly similar in its usage to the `tsls()` function in the **sem** package and the `ivreg()` function in the **AER** package. Its raison-d'etre therefore is the provision of regression diagnostics. The subject of this vignette is the rationale for the various diagnostics and the use of functions in the **lm2sls** package to compute them, along with functions in other packages (specifically the base-R **stats** package and the **car** and **effects** packages) that work with the `"2sls"` objects produced by `lm2sls()`.
+`lm2sls()` is broadly similar in its usage to the `tsls()` function in the **sem** package and the `ivreg()` function in the **AER** package. Its raison-d'etre therefore is the provision of regression diagnostics. The subject of this vignette is the rationale for the various diagnostics and the use of functions in the **lm2sls** package to compute them, along with functions in other packages, specifically the base-R **stats** package and the **car** and **effects** packages [@FoxWeisberg2019], that work with the `"2sls"` objects produced by `lm2sls()`.
 
 
 ## Review of 2SLS Estimation
@@ -370,6 +370,18 @@ Alternatively, we can treat the two stages of 2SLS as *weighted least squares (W
 
 Phillips's updating formulas for 2SLS regression could also be modified for the weighted case, but a simpler approach (which is evident in the formula for $b_{\mathrm{W2SLS}}$ above) is to convert the weighted 2SLS problem into an unweighted problem, by transforming the data to constant variance using $W^{1/2} = \mathrm{diag}\{\sqrt{w_i}\}$, the Cholesky square root of $W$. The square root of $W$ is particularly simple because $W$ is diagonal. Then in Phillips's updating formulas, we replace $y$ with $y^* = W^{1/2}y$, $X$ with $X^* = W^{1/2}X$, and $Z$ with $Z^* = W^{1/2}Z$.
 
+
+## Collinearity Diagnostics
+
+In addition to unusual-data diagnostics, @BelsleyKuhWelsch1980 briefly extend their approach to collinearity diagnostics to 2SLS regression. I believe that this approach, which assimilates collinearity to numerical instability, is flawed, in that it takes into account "collinearity with the intercept." That is, regressors with values far from 0 have large sums of products with the constant regressor, producing a large standard error of the intercept, and simply reflecting the fact that the intercept extrapolates the fitted regression surface far beyond the range of the data.
+
+@FoxMonette1992 describe an alternative approach to collinearity diagnostics in linear models fit by least squares based on *generalized variance-inflation factors*. The implementation of generalized variance inflation fators in the `vif()` function in the **car** package, which employs the estimated covariance matrix of the coefficients, applies in general to models with linear predictors, including linear models estimated by 2SLS.
+
+For example, for the demand equation in Kmenta's model:
+```{r}
+sqrt(vif(deq))
+```
+Taking the square-roots of the VIFs puts them on the coefficient standard-error scale. That is, the standard errors of the coefficients of $P$ and $D$ are 23% larger than they would be if the estimated coefficients were uncorrelated (which is equivalent to the columns of $\widehat{X}$ for $P$ and $D$ in the second-stage regression being uncorrelated). When, as here, each term in the model has just one coefficient, generalized and ordinary variance-inflation factors coincide. The equality of the VIFs for $P$ and $D$ is peculiar to the case of two regressors (beyond the regression constant).
 
 ## Concluding Remarks
 
